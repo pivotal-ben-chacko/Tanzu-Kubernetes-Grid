@@ -3,7 +3,7 @@
 set -e 
 
 # Enter your PivNet Legacy API token
-APITOKEN=""
+APITOKEN="xxxxxxxx"
 
 PSQLFILE="postgres-for-kubernetes-v1.8.0"
 REGISTRY="harbor.skynetsystems.io"
@@ -80,6 +80,20 @@ spec:
 EOF
 }
 
+gen_sample_instance () {
+cat > sample-psql-service-instance.yaml << EOF
+---
+apiVersion: sql.tanzu.vmware.com/v1
+kind: Postgres
+metadata:
+  name: psql-1
+  namespace: default
+spec:
+  storageClassName: default
+  monitorStorageClassName: default
+EOF
+}
+
 check_tools
 
 if [ ! -f ${PSQLFILE}.tar.gz ]; then
@@ -124,3 +138,7 @@ kubectl apply -f ${psqlFiles[1]}
 
 gen_psql_resource_claim_policy
 kubectl apply -f ${psqlFiles[2]}
+
+gen_sample_instance
+echo "Run 'kubectl apply -f postgres-for-kubernetes-v1.8.0/sample-psql-service-instance.yaml' to create a postgres service instance."
+echo "Run 'tanzu service claim create psql-1 --resource-name psql-1 --resource-namespace psql-service-instances --resource-kind Postgres --resource-api-version sql.tanzu.vmware.com/v1 -n default' to make the service claim."
