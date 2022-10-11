@@ -3,13 +3,20 @@
 set -e 
 
 # Enter your PivNet Legacy API token
-APITOKEN="xxxxxxxx"
+APITOKEN=""
 
 PSQLFILE="postgres-for-kubernetes-v1.8.0"
+
 REGISTRY="harbor.skynetsystems.io"
+REGISTRY_USERNAME="admin"
+REGISTRY_PASS="changeme"
 PROJECT="tap"
 
+SEARCH_STR_1="registry.tanzu.vmware.com"
+SEARCH_STR_2="tanzu-sql-postgres"
+
 psqlFiles=("psql-cluster-rbc.yaml" "psql-cluster-class.yaml" "psql-resource-claim-policy.yaml")
+
 
 check_tools () {
   if [ ! command -v imgpkg &> /dev/null ]; then
@@ -96,6 +103,14 @@ EOF
 
 check_tools
 
+
+# Create namespace where Postgres Operator should be installed to
+kubectl create namespace postgres-operator
+# Create a docker-registry type secret to allow the Kubernetes cluster to authenticate with the private container registry
+kubectl create secret docker-registry regsecret --docker-server=$REGISTRY --docker-username=$REGISTRY_USERNAME \
+  --docker-password=$REGISTRY_PASS --namespace=postgres-operator
+
+
 if [ ! -f ${PSQLFILE}.tar.gz ]; then
   curl "https://network.pivotal.io/api/v2/products/tanzu-sql-postgres/releases/1124725/product_files/1260935/download" -H "Authorization: Token $APITOKEN" -L --output postgres-for-kubernetes-v1.8.0.tar.gz
 else
@@ -104,6 +119,7 @@ fi
 
 # Untar the postgres tarball
 if [ ! -d ${PSQLFILE} ]; then
+  echo INFO: Extracting tarbal...
   tar -xzf postgres-for-kubernetes-v1.8.0.tar.gz
 else 
   echo INFO: File already extracted, skipping...
@@ -111,12 +127,12 @@ fi
 
 cd ./$PSQLFILE
 
+
 # Load postgres images into docker
 docker load -i ./images/postgres-instance
 docker load -i ./images/postgres-operator
 
 docker images "postgres-*"
-
 docker login $REGISTRY
 
 # Push Postgres instance to registry
@@ -129,16 +145,41 @@ OPERATOR_IMAGE_NAME="${REGISTRY}/${PROJECT}/postgres-operator:$(cat ./images/pos
 docker tag $(cat ./images/postgres-operator-id) ${OPERATOR_IMAGE_NAME}
 docker push ${OPERATOR_IMAGE_NAME}
 
+
+# Update values file 
+FILE=./operator/values.yaml
+echo "INFO: Updating values file..."
+if grep -q "$SEARCH_STR_1" "$FILE"; then
+  sed -i "s/${SEARCH_STR_1}/${REGISTRY}/" ${FILE}
+fi
+
+if grep -q "$SEARCH_STR_2" "$FILE"; then
+  sed -i "s/${SEARCH_STR_2}/${PROJECT}/" ${FILE}
+fi
+
+
+# Enable Open Container Initiative (OCI)
+export HELM_EXPERIMENTAL_OCI=1
+
+# Install Postgres Operator
+helm registry login $REGISTRY --username=$REGISTRY_USERNAME --password=$REGISTRY_PASS
+helm install postgres-operator operator/ --values=operator/values.yaml --namespace=postgres-operator --wait
+
+echo "Exit Code: " $?
+
 # Apply resources and policies
 gen_psql_crb
+echo INFO: Applying cluster role...
 kubectl apply -f ${psqlFiles[0]}
-
+echo INFO: Applying cluster instance...
 gen_psql_cluster_class
 kubectl apply -f ${psqlFiles[1]}
-
+echo INFO: Create a resource claim policy...
 gen_psql_resource_claim_policy
 kubectl apply -f ${psqlFiles[2]}
 
 gen_sample_instance
+echo
+echo
 echo "Run 'kubectl apply -f postgres-for-kubernetes-v1.8.0/sample-psql-service-instance.yaml' to create a postgres service instance."
 echo "Run 'tanzu service claim create psql-1 --resource-name psql-1 --resource-namespace psql-service-instances --resource-kind Postgres --resource-api-version sql.tanzu.vmware.com/v1 -n default' to make the service claim."
