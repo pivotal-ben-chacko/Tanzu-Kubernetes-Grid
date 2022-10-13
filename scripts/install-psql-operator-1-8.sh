@@ -2,36 +2,52 @@
 
 set -e 
 
-# Enter your PivNet Legacy API token
-APITOKEN=""
 
-PSQLFILE="postgres-for-kubernetes-v1.8.0"
+# --- Usage ---------------------------------------------------------------
+#
+# ./install-psql-operator-1-8.sh <options>
+#
+# Options:
+#  --ag    Initiate airgapped install
+#          Note: Postgres operator must be in the current working dir, 
+#                named: postgres-for-kubernetes-v1.8.0.tar.gz
+#
+# -------------------------------------------------------------------------
+#
+# --- Enter Pivnet Legacy API token if not using airgapped install     ----
+
+APITOKEN="NkBpzjCsZPAVQh1cf1cw"
+
+# -------------------------------------------------------------------------
+
+# --- Set this to your private registry if using airgapped installation ---
+# --- Set this to tanzu registry otherwise                              ---
 
 REGISTRY="harbor.skynetsystems.io"
 REGISTRY_USERNAME="admin"
 REGISTRY_PASS="changeme"
-PROJECT="tap"
+REGISTRY_PROJECT="tap"
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+
+PSQLFILE="postgres-for-kubernetes-v1.8.0"
 
 SEARCH_STR_1="registry.tanzu.vmware.com"
 SEARCH_STR_2="tanzu-sql-postgres"
 
-psqlFiles=("psql-cluster-rbc.yaml" "psql-cluster-class.yaml" "psql-resource-claim-policy.yaml")
-
-
-check_tools () {
-  if [ ! command -v imgpkg &> /dev/null ]; then
-    echo "Please install imgpkg"
-  elif [ ! command -v yq &> /dev/null ]; then
-    echo "Please install yq"
-  fi
-}
-
+# Check if air-gapped install
+if [ "$1" = "--ag" ]; then
+  AIR_GAPPED=true
+else
+  AIR_GAPPED=""
+fi
 
 # create a ClusterRole that defines the rules and label it so that the rules are aggregated 
 # to the appropriate controller.
 
 gen_psql_crb () {
-cat > ${psqlFiles[0]} << EOF
+cat <<EOF | kubectl apply -f -
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -50,7 +66,7 @@ EOF
 # Make the new API discoverable to application operators.
 
 gen_psql_cluster_class () {
-cat > ${psqlFiles[1]} << EOF
+cat <<EOF | kubectl apply -f -
 ---
 apiVersion: services.apps.tanzu.vmware.com/v1alpha1
 kind: ClusterInstanceClass
@@ -71,7 +87,7 @@ EOF
 # different namespace, you must create a resource claim policy.
 
 gen_psql_resource_claim_policy () {
-cat > ${psqlFiles[2]} << EOF
+cat <<EOF | kubectl apply -f -
 ---
 apiVersion: services.apps.tanzu.vmware.com/v1alpha1
 kind: ResourceClaimPolicy
@@ -101,20 +117,19 @@ spec:
 EOF
 }
 
-check_tools
-
 
 # Create namespace where Postgres Operator should be installed to
-kubectl create namespace postgres-operator
+# kubectl create namespace postgres-operator
 # Create a docker-registry type secret to allow the Kubernetes cluster to authenticate with the private container registry
-kubectl create secret docker-registry regsecret --docker-server=$REGISTRY --docker-username=$REGISTRY_USERNAME \
-  --docker-password=$REGISTRY_PASS --namespace=postgres-operator
+# kubectl create secret docker-registry regsecret --docker-server=$REGISTRY --docker-username=$REGISTRY_USERNAME \
+#  --docker-password=$REGISTRY_PASS --namespace=postgres-operator
 
-
-if [ ! -f ${PSQLFILE}.tar.gz ]; then
-  curl "https://network.pivotal.io/api/v2/products/tanzu-sql-postgres/releases/1124725/product_files/1260935/download" -H "Authorization: Token $APITOKEN" -L --output postgres-for-kubernetes-v1.8.0.tar.gz
-else
-  echo INFO: File already exists, skipping download...
+if [ -z $AIR_GAPPED ]; then
+  if [ ! -f ${PSQLFILE}.tar.gz ]; then
+    curl "https://network.pivotal.io/api/v2/products/tanzu-sql-postgres/releases/1124725/product_files/1260935/download" -H "Authorization: Token $APITOKEN" -L --output postgres-for-kubernetes-v1.8.0.tar.gz
+  else
+    echo INFO: File already exists, skipping download...
+  fi
 fi
 
 # Untar the postgres tarball
@@ -127,36 +142,36 @@ fi
 
 cd ./$PSQLFILE
 
+if [ ! -z $AIR_GAPPED ]; then
+  # Load postgres images into docker
+  echo "INFO: Loading images into docker..."
+  docker load -i ./images/postgres-instance
+  docker load -i ./images/postgres-operator
 
-# Load postgres images into docker
-docker load -i ./images/postgres-instance
-docker load -i ./images/postgres-operator
+  docker images "postgres-*"
+  docker login $REGISTRY
 
-docker images "postgres-*"
-docker login $REGISTRY
+  # Push Postgres instance to registry
+  INSTANCE_IMAGE_NAME="${REGISTRY}/${REGISTRY_PROJECT}/postgres-instance:$(cat ./images/postgres-instance-tag)"
+  docker tag $(cat ./images/postgres-instance-id) ${INSTANCE_IMAGE_NAME}
+  docker push ${INSTANCE_IMAGE_NAME}
 
-# Push Postgres instance to registry
-INSTANCE_IMAGE_NAME="${REGISTRY}/${PROJECT}/postgres-instance:$(cat ./images/postgres-instance-tag)"
-docker tag $(cat ./images/postgres-instance-id) ${INSTANCE_IMAGE_NAME}
-docker push ${INSTANCE_IMAGE_NAME}
+  # Push Postgres operator to registry
+  OPERATOR_IMAGE_NAME="${REGISTRY}/${REGISTRY_PROJECT}/postgres-operator:$(cat ./images/postgres-operator-tag)"
+  docker tag $(cat ./images/postgres-operator-id) ${OPERATOR_IMAGE_NAME}
+  docker push ${OPERATOR_IMAGE_NAME}
+  
+  # Update values file 
+  FILE=./operator/values.yaml
+  echo "INFO: Updating values file..."
+  if grep -q "$SEARCH_STR_1" "$FILE"; then
+    sed -i "s/${SEARCH_STR_1}/${REGISTRY}/" ${FILE}
+  fi
 
-# Push Postgres operator to registry
-OPERATOR_IMAGE_NAME="${REGISTRY}/${PROJECT}/postgres-operator:$(cat ./images/postgres-operator-tag)"
-docker tag $(cat ./images/postgres-operator-id) ${OPERATOR_IMAGE_NAME}
-docker push ${OPERATOR_IMAGE_NAME}
-
-
-# Update values file 
-FILE=./operator/values.yaml
-echo "INFO: Updating values file..."
-if grep -q "$SEARCH_STR_1" "$FILE"; then
-  sed -i "s/${SEARCH_STR_1}/${REGISTRY}/" ${FILE}
+  if grep -q "$SEARCH_STR_2" "$FILE"; then
+    sed -i "s/${SEARCH_STR_2}/${REGISTRY_PROJECT}/" ${FILE}
+  fi
 fi
-
-if grep -q "$SEARCH_STR_2" "$FILE"; then
-  sed -i "s/${SEARCH_STR_2}/${PROJECT}/" ${FILE}
-fi
-
 
 # Enable Open Container Initiative (OCI)
 export HELM_EXPERIMENTAL_OCI=1
@@ -165,18 +180,15 @@ export HELM_EXPERIMENTAL_OCI=1
 helm registry login $REGISTRY --username=$REGISTRY_USERNAME --password=$REGISTRY_PASS
 helm install postgres-operator operator/ --values=operator/values.yaml --namespace=postgres-operator --wait
 
-echo "Exit Code: " $?
-
 # Apply resources and policies
-gen_psql_crb
 echo INFO: Applying cluster role...
-kubectl apply -f ${psqlFiles[0]}
+gen_psql_crb
+
 echo INFO: Applying cluster instance...
 gen_psql_cluster_class
-kubectl apply -f ${psqlFiles[1]}
+
 echo INFO: Create a resource claim policy...
 gen_psql_resource_claim_policy
-kubectl apply -f ${psqlFiles[2]}
 
 gen_sample_instance
 echo
