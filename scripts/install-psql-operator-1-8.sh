@@ -9,19 +9,19 @@ set -e
 #
 # Options:
 #  --ag    Initiate airgapped install
-#          Note: Postgres operator must be in the current working dir, 
+#          Note: Postgres operator package must be in the current working dir, 
 #                named: postgres-for-kubernetes-v1.8.0.tar.gz
 #
 # -------------------------------------------------------------------------
 #
 # --- Enter Pivnet Legacy API token if not using airgapped install     ----
 
-APITOKEN="NkBpzjCsZPAVQh1cf1cw"
+APITOKEN="xxxxxxxxxx"
 
 # -------------------------------------------------------------------------
 
 # --- Set this to your private registry if using airgapped installation ---
-# --- Set this to tanzu registry otherwise                              ---
+# --- otherwise leave it as the tanzu registry creds                    ---
 
 REGISTRY="harbor.skynetsystems.io"
 REGISTRY_USERNAME="admin"
@@ -121,8 +121,8 @@ EOF
 # Create namespace where Postgres Operator should be installed to
 # kubectl create namespace postgres-operator
 # Create a docker-registry type secret to allow the Kubernetes cluster to authenticate with the private container registry
-# kubectl create secret docker-registry regsecret --docker-server=$REGISTRY --docker-username=$REGISTRY_USERNAME \
-#  --docker-password=$REGISTRY_PASS --namespace=postgres-operator
+  kubectl create secret docker-registry regsecret --docker-server=$REGISTRY --docker-username=$REGISTRY_USERNAME \
+    --docker-password=$REGISTRY_PASS --namespace=postgres-operator
 
 if [ -z $AIR_GAPPED ]; then
   if [ ! -f ${PSQLFILE}.tar.gz ]; then
