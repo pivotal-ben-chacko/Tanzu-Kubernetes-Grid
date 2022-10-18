@@ -19,6 +19,7 @@
 # create a ClusterRole that defines the rules and label it so that the rules are aggregated 
 # to the appropriate controller.
 
+set -e
 
 # Check if smoke test required
 if [ "$1" = "--test" ]; then
@@ -96,6 +97,10 @@ EOF
 }
 
 smoke_test () {
+  # unset exit on error as otherwise the grep command will make the 
+  # program exit if it fails to find the string.
+  set +e
+
   count=0
   while [ $count -lt 10 ] 
   do
@@ -131,6 +136,8 @@ smoke_test () {
       echo ERROR: RabbitMQ instance never became healthy...
     fi
   done
+  
+  set -e 
 
   echo INFO: Cleaning up...         
   kubectl delete -f sample-rmq-service-instance.yaml &> /dev/null
