@@ -28,8 +28,6 @@ else
 fi
 
 gen_rmq_crb () {
-
-
 cat <<EOF | kubectl apply -f -
 ---
 apiVersion: rbac.authorization.k8s.io/v1
