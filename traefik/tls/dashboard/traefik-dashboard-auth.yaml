@@ -1,0 +1,20 @@
+# -------------------------------------------------------------------
+#
+# Use htpasswd to generate encoded user/pass
+#
+# Example: 
+#   sudo apt-get install apache2-utils
+#   htpasswd -nb admin changeme | base64
+#
+#   See: https://doc.traefik.io/traefik/middlewares/http/basicauth/
+#
+# -------------------------------------------------------------------
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: traefik-dashboard-auth
+  namespace: traefik
+type: Opaque
+data:
+  users: abc123==
