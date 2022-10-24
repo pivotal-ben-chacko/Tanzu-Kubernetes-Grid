@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mop
+spec:
+  selector:
+    matchLabels:
+      app: mop
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mop
+    spec:
+      containers:
+      - name: mop
+        image: beninaskaria/vmware:mop-alpine
