@@ -7,9 +7,9 @@ spec:
   project: default
 
   source:
-    repoURL: https://github.com/pivotal-ben-chacko/Tanzu-Kubernetes-Grid
+    repoURL: https://github.com/pivotal-ben-chacko/Tanzu-Kubernetes-Grid.git
     targetRevision: HEAD
-    path: dev
+    path: argocd/dev
   destination: 
     server: https://kubernetes.default.svc
     namespace: mop
