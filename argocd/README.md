@@ -1,3 +1,6 @@
+![argocd logo](argocd.png)
+
+
 #### Commands
 
 ```bash
