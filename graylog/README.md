@@ -14,6 +14,8 @@
 echo -e '{"version": "1.1","host":"skynetsystems.io","short_message":"Short message","full_message":"Backtrace here\n\nmore stuff","level":1,"_user_id":9001,"_some_info":"foo","_some_env_var":"bar"}\0' | nc -w 1 <GRAYLOG-SERVER-IP> 12201
 ```
 
+![gralog test](graylog-test.png)
+
 
 #### Install FluentBit
 ```bash
