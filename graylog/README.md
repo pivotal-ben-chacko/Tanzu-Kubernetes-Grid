@@ -6,6 +6,14 @@
 1. Import OVA template into vsphere
 2. Start VM and note the username and password by launching the web console
 3. Navigate to VM IP address and enter credentials from step 2 
+4. Go to **System/Inputs** from the GUI and select **Inputs** 
+5. Select **GELF TCP** from the drop-down and click on **Launch new input**
+
+*Run the following command to test Graylog input. If installed correctly. the test message will show up in Graylog logging*
+```bash
+# Replace GRAYLOG-SERVER-IP with ip of Graylog server
+echo -e '{"version": "1.1","host":"skynetsystems.io","short_message":"Short message","full_message":"Backtrace here\n\nmore stuff","level":1,"_user_id":9001,"_some_info":"foo","_some_env_var":"bar"}\0' | nc -w 1 <GRAYLOG-SERVER-IP> 12201
+```
 
 
 #### Install FluentBit
