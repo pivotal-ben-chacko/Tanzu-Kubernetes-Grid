@@ -1,5 +1,4 @@
-
-![traefik logo](traefik.jpeg)
+![gralog logo](graylog.jpeg)
 
 
 #### Install Graylog OVA Appliance
