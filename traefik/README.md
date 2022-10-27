@@ -2,10 +2,15 @@
 ![traefik logo](traefik.jpeg)
 
 
-#### Install Graylog OVA Appliance
-1. Import OVA template into vsphere
-2. Start VM and note the username and password by launching the web console
-3. Navigate to VM IP address and enter credentials from step 2 
+#### Traefik Proxy
+
+Traefik is a leading modern reverse proxy and load balancer that makes deploying microservices easy. Traefik integrates with your existing infrastructure components and configures itself automatically and dynamically.
+
+Traefik is designed to be as simple as possible to operate, but capable of handling large, highly-complex deployments across a wide range of environments and protocols in public, private, and hybrid clouds. It also comes with a powerful set of middlewares that enhance its capabilities to include load balancing, API gateway, orchestrator ingress, as well as east-west service communication and more.
+
+![enter image description here](traefik-architect.png)
+
+
 
 
 #### Install FluentBit
@@ -30,10 +35,10 @@ pod/fluent-bit-xq8bp   1/1     Running   0          3h10m
 
 #### Links
 
-* Fluentbit Graylog config: [https://docs.fluentbit.io/manual/pipeline/outputs/gelf](https://gitlab.com/nanuchi/argocd-app-config)
+* Traefik Proxy: [https://doc.traefik.io/traefik/](https://doc.traefik.io/traefik/)
 
-* Graylog VM Install: [hhttps://graylog2zh-cn.readthedocs.io/zh_CN/latest/pages/installation/virtual_machine_appliances.html](https://hub.docker.com/repository/docker/nanajanashia/argocd-app)
+* Graylog VM Install: [https://graylog2zh-cn.readthedocs.io/zh_CN/latest/pages/installation/virtual_machine_appliances.html](https://graylog2zh-cn.readthedocs.io/zh_CN/latest/pages/installation/virtual_machine_appliances.html)
 
-* Graylog OVA appliance: [https://github.com/Graylog2/graylog2-images](https://argo-cd.readthedocs.io/en/stable/getting_started/#1-install-argo-cd)
+* Graylog OVA appliance: [https://github.com/Graylog2/graylog2-images](https://github.com/Graylog2/graylog2-images)
 
 
