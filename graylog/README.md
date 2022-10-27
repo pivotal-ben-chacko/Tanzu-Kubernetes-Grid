@@ -1,5 +1,5 @@
 
-![graylog logo](graylog.jpeg)
+![traefik logo](traefik.jpeg)
 
 
 #### Install Graylog OVA Appliance
@@ -30,10 +30,10 @@ pod/fluent-bit-xq8bp   1/1     Running   0          3h10m
 
 #### Links
 
-* Fluentbit Graylog config: [https://docs.fluentbit.io/manual/pipeline/outputs/gelf](https://gitlab.com/nanuchi/argocd-app-config)
+* Fluentbit Graylog config: [https://docs.fluentbit.io/manual/pipeline/outputs/gelf](https://docs.fluentbit.io/manual/pipeline/outputs/gelf)
 
-* Graylog VM Install: [hhttps://graylog2zh-cn.readthedocs.io/zh_CN/latest/pages/installation/virtual_machine_appliances.html](https://hub.docker.com/repository/docker/nanajanashia/argocd-app)
+* Graylog VM Install: [https://graylog2zh-cn.readthedocs.io/zh_CN/latest/pages/installation/virtual_machine_appliances.html](https://graylog2zh-cn.readthedocs.io/zh_CN/latest/pages/installation/virtual_machine_appliances.html)
 
-* Graylog OVA appliance: [https://github.com/Graylog2/graylog2-images](https://argo-cd.readthedocs.io/en/stable/getting_started/#1-install-argo-cd)
+* Graylog OVA appliance: [https://github.com/Graylog2/graylog2-images](https://github.com/Graylog2/graylog2-images)
 
 
