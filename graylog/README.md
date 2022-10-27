@@ -1,14 +1,15 @@
+
 ![graylog logo](graylog.jpeg)
 
 
-#### Commands
-
-```bash
-# install Graylog from a machine template
+#### Install Graylog OVA Appliance
 1. Import OVA template into vsphere
 2. Start VM and note the username and password by launching the web console
 3. Navigate to VM IP address and enter credentials from step 2 
 
+
+#### Install FluentBit
+```bash
 # install FluentBit in k8s cluster
 git clone https://github.com/pivotal-ben-chacko/Tanzu-Kubernetes-Grid.git
 cd Tanzu-Kubernetes-Grid/graylog
@@ -34,4 +35,5 @@ pod/fluent-bit-xq8bp   1/1     Running   0          3h10m
 * Graylog VM Install: [hhttps://graylog2zh-cn.readthedocs.io/zh_CN/latest/pages/installation/virtual_machine_appliances.html](https://hub.docker.com/repository/docker/nanajanashia/argocd-app)
 
 * Graylog OVA appliance: [https://github.com/Graylog2/graylog2-images](https://argo-cd.readthedocs.io/en/stable/getting_started/#1-install-argo-cd)
+
 
