@@ -86,3 +86,10 @@ nginx-ingress-nginx-tcp          1      3s
 MYSQL_ROOT_PASSWORD=$(kubectl get secret --namespace mysql mysql -o jsonpath="{.data.mysql-root-password}" | base64 -d)
 mysql -h skynetsystems.io -uroot -p"$MYSQL_ROOT_PASSWORD"
 ```
+
+**Links**
+
+ - [Github: kubernetes/ingress-nginx](https://github.com/kubernetes/ingress-nginx)
+ - [Installation Guide](https://kubernetes.github.io/ingress-nginx/deploy/)
+ - [Ingress - Kubernetes](https://kubernetes.io/docs/concepts/services-networking/ingress/)
+ - [Bitnami - MySQL](https://bitnami.com/stack/mysql/helm)
