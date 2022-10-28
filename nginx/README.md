@@ -1,4 +1,4 @@
-![nginx logo](nginx.png)
+![nginx logo](nginx.jpeg)
 
 
 #### Nginx Ingress Controller
