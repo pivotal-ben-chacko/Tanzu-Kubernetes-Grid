@@ -87,9 +87,102 @@ MYSQL_ROOT_PASSWORD=$(kubectl get secret --namespace mysql mysql -o jsonpath="{.
 mysql -h skynetsystems.io -uroot -p"$MYSQL_ROOT_PASSWORD"
 ```
 
+**NGINX ingress with TLS using Letsencrypt**
+
+We need to install cert-manager to do the work with Kubernetes to request a certificate and respond to the challenge to validate it. We can use Helm or plain Kubernetes manifests to install cert-manager.
+
+cert-manager mainly uses two different custom Kubernetes resources - known as  [`CRDs`](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/)  - to configure and control how it operates, as well as to store state. These resources are Issuers and Certificates.
+
+**Issuers**
+
+An Issuer defines  _how_  cert-manager will request TLS certificates. Issuers are specific to a single namespace in Kubernetes, but there's also a  `ClusterIssuer`  which is meant to be a cluster-wide version.
+
+Take care to ensure that your Issuers are created in the same namespace as the certificates you want to create. You might need to add  `-n my-namespace`  to your  `kubectl create`  commands.
+
+Your other option is to replace your  `Issuers`  with  `ClusterIssuers`;  `ClusterIssuer`  resources apply across all Ingress resources in your cluster. If using a  `ClusterIssuer`, remember to update the Ingress annotation  `cert-manager.io/issuer`  to  `cert-manager.io/cluster-issuer`.
+
+If you see issues with issuers, follow the  [Troubleshooting Issuing ACME Certificates](https://cert-manager.io/docs/faq/acme/)  guide.
+
+More information on the differences between  `Issuers`  and  `ClusterIssuers`  - including when you might choose to use each can be found on  [Issuer concepts](https://cert-manager.io/docs/concepts/issuer/#namespaces).
+
+**Certificates**
+
+Certificates resources allow you to specify the details of the certificate you want to request. They reference an issuer to define  _how_  they'll be issued.
+
+For more information, see  [Certificate concepts](https://cert-manager.io/docs/concepts/certificate/).
+
+**Configure a Let's Encrypt Issuer**
+
+We'll set up two issuers for Let's Encrypt in this example: staging and production.
+
+The Let's Encrypt production issuer has  [very strict rate limits](https://letsencrypt.org/docs/rate-limits/). When you're experimenting and learning, it can be very easy to hit those limits. Because of that risk, we'll start with the Let's Encrypt staging issuer, and once we're happy that it's working we'll switch to the production issuer.
+
+Note that you'll see a warning about untrusted certificates from the staging issuer, but that's totally expected.
+
+Create this definition locally and update the email address to your own. This email is required by Let's Encrypt and used to notify you of certificate expiration and updates.
+
+*issuer-letsencrypt-staging.yaml*
+
+```bash
+ apiVersion: cert-manager.io/v1
+ kind: ClusterIssuer
+ metadata:
+   name: letsencrypt-staging
+ spec:
+   acme:
+     # The ACME server URL for ClusterIssuer
+     server: https://acme-staging-v02.api.letsencrypt.org/directory
+     # Email address used for ACME registration
+     email: admin@skynetsystems.io
+     # Name of a secret used to store the ACME account private key
+     privateKeySecretRef:
+       name: letsencrypt-staging
+     # Enable the HTTP-01 challenge provider
+     solvers:
+     - http01:
+         ingress:
+           class: nginx
+ ```
+
+Then apply the yaml
+
+```bash
+kubectl apply -f issuer-letsencrypt-staging.yaml
+```
+
+Also create a production issuer and deploy it:
+
+*issuer-letsencrypt-prod.yaml*
+
+```bash
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+ spec:
+  acme:
+    # The ACME server URL for ClusterIssuer
+    server: https://acme-v02.api.letsencrypt.org/directory
+    # Email address used for ACME registration
+    email: admin@skynetsystems.io
+    # Name of a secret used to store the ACME account private key
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    # Enable the HTTP-01 challenge provider
+    solvers:
+    - http01:
+        ingress:
+          class: nginx
+```
+
+```bash
+kubectl apply -f issuer-letsencrypt-staging.yaml
+```
+
 **Links**
 
  - [Github: kubernetes/ingress-nginx](https://github.com/kubernetes/ingress-nginx)
  - [Installation Guide](https://kubernetes.github.io/ingress-nginx/deploy/)
  - [Ingress - Kubernetes](https://kubernetes.io/docs/concepts/services-networking/ingress/)
  - [Bitnami - MySQL](https://bitnami.com/stack/mysql/helm)
+
