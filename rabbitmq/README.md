@@ -47,3 +47,9 @@ $ # update the following values in values.yaml
 $ # update the rabbitmq helm release by injecting the new values
 $ helm upgrade --install rabbitmq bitnami/rabbitmq -n rabbitmq --values values.yaml
 ```
+
+**Verify TLS**
+
+To verify TLS is working we can run the following openssl command. This command will indicate a failure and disconnect since we are using a self signed certificate, otherwise openssl should stay connected to the server
+```bash
+openssl s_client -connect skynetsystems.io:5671 -verify_quiet
