@@ -52,3 +52,8 @@ To verify TLS is working we can run the following openssl command. This command 
 ```bash
 openssl s_client -connect skynetsystems.io:5671 -verify_quiet
 ```
+
+Alternatively
+
+```bash
+openssl s_client -connect rabbit.skynetsystems.io:5671 -cert client_certificate.pem -key client_key.pem -CAfile ca_certificate.pem
