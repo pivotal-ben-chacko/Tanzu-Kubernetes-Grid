@@ -19,12 +19,10 @@ The process of generating a Certificate Authority and two key pairs is fairly la
 ```bash
 git clone https://github.com/rabbitmq/tls-gen tls-gen
 cd tls-gen/basic
-make
-make verify
-make info
+./generate.sh
 ```
 
-- The TLS certificates/keys should now be available in */results* folder.
+- The TLS certificates/keys should now be available in *./rabbitmq-tls* folder.
 
 Execute the following command to create the secret, replacing the example paths shown with the correct paths to your certificates:
 
