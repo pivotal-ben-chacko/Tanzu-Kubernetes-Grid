@@ -11,7 +11,7 @@ DIR=rabbitmq-tls
 echo "Enter common name (CN) for certificate: "
 read var
 
-make CN=$var
+make PASSWORD=bunnies CN=$var
 
 if [ ! -d "$DIR" ]; then
   mkdir $DIR
@@ -34,3 +34,8 @@ for f in server*.pem; do
     cp $f ../$DIR/tls.crt
   fi
 done
+
+cd ../client*
+
+cp cert.pem ../$DIR/client_certificate.pem
+cp key.pem  ../$DIR/client_key.pem
