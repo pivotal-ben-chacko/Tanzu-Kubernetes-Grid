@@ -1,0 +1,60 @@
+apiVersion: run.tanzu.vmware.com/v1alpha2
+kind: TanzuKubernetesCluster
+metadata:
+  name: string
+  namespace: string
+spec:
+  topology:
+    controlPlane:
+      replicas: int32
+      vmClass: string
+      storageClass: string
+      volumes: 
+        - name: string
+          mountPath: string
+          capacity:
+            storage: size in GiB
+      tkr:  
+        reference:
+          name: string
+      nodeDrainTimeout: string
+    nodePools:
+    - name: string 
+      labels: map[string]string
+      taints:
+        -  key: string
+           value: string
+           effect: string
+           timeAdded: time
+      replicas: int32
+      vmClass: string
+      storageClass: string
+      volumes:
+        - name: string
+          mountPath: string
+          capacity:
+            storage: size in GiB
+      tkr:  
+        reference:
+          name: string
+      nodeDrainTimeout: string
+  settings:
+    storage:
+      classes: [string]
+      defaultClass: string
+    network:
+      cni:
+        name: string
+      pods:
+        cidrBlocks: [string]
+      services:
+        cidrBlocks: [string]
+      serviceDomain: string
+      proxy:
+        httpProxy: string
+        httpsProxy: string
+        noProxy: [string]
+      trust: 
+        additionalTrustedCAs:
+          - name: string
+            data: string

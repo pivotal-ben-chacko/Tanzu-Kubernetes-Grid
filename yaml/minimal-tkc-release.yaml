@@ -1,0 +1,31 @@
+apiVersion: run.tanzu.vmware.com/v1alpha2
+kind: TanzuKubernetesCluster
+metadata:
+  name: tkgs-v2-cluster-default
+  namespace: tkgs-cluster-ns
+spec:
+  topology:
+    controlPlane:
+      replicas: 3
+      vmClass: guaranteed-medium
+      storageClass: vwt-storage-policy
+      tkr:  
+        reference:
+          name: v1.21.2---vmware.1-tkg.1.ee25d55
+    nodePools:
+    - name: worker-nodepool-a1
+      replicas: 3
+      vmClass: guaranteed-large
+      storageClass: vwt-storage-policy
+      tkr:  
+        reference:
+          name: v1.21.2---vmware.1-tkg.1.ee25d55
+  settings:
+    storage:
+      defaultClass: vwt-storage-policy
+    network:
+      trust:
+        additionalTrustedCAs:
+          - name: CompanyInternalCA-1
+            data: LS0tLS1C...LS0tCg==
+

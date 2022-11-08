@@ -1,0 +1,224 @@
+apiVersion: run.tanzu.vmware.com/v1alpha2
+kind: TanzuKubernetesCluster
+#metadata defines cluster information
+metadata:
+  #name for this Tanzu Kubernetes cluster
+  name: string
+  #namespace vSphere Namespace where to provision this cluster
+  namespace: string
+#spec defines cluster configuration
+spec:
+  #topology describes the number, purpose, organization 
+  #of nodes and the resources allocated for each
+  #nodes are grouped into pools based on their purpose
+  #`controlPlane` is special kind of a node pool 
+  #`nodePools` is for groups of worker nodes
+  #each node pool is homogeneous: its nodes have the same   
+  #resource allocation and use the same storage
+  topology:
+    #controlPlane defines the topology of the cluster 
+    #controller, including the number of nodes and  
+    #the resources allocated for each 
+    #control plane must have an odd number of nodes                              
+    controlPlane:
+      #replicas is the number of nodes in the pool
+      #the control plane can have 1 or 3 nodes
+      #defaults to 1 if `nil`
+      replicas: int32
+      #vmClass is the name of the VirtualMachineClass 
+      #which describes the virtual hardware settings 
+      #to be used for each node in the node pool 
+      #vmClass controls the CPU and memory available   
+      #to the node and the requests and limits on 
+      #those resources; to list available vm classes run 
+      #`kubectl describe virtualmachineclasses`
+      vmClass: string
+      #storageClass to be used for storage of the disks 
+      #which store the root filesystems of the nodes 
+      #to list available storage classes run
+      #`kubectl describe storageclasses`
+      storageClass: string
+      #volumes is the optional set of PVCs to create 
+      #and attach to each node; use for high-churn 
+      #control plane components such as etcd
+      volumes: 
+        #name of the PVC to be used as the suffix (node.name)
+        - name: string
+          #mountPath is the directory where the volume   
+          #device is mounted; takes the form /dir/path
+          mountPath: string
+          #capacity is the PVC capacity
+          capacity:
+            #storage to be used for the disk
+            #volume; if not specified defaults to 
+            #`spec.controlPlane.storageClass`
+            storage: size in GiB
+      #tkr.reference.name is the TKR NAME 
+      #to be used by control plane nodes; supported
+      #format is `v1.21.2---vmware.1-tkg.1.ee25d55`
+      #currently all `tkr.reference.name` fields must match
+      tkr:  
+        reference:
+          name: string
+      #nodeDrainTimeout is the total amount of time 
+      #the controller will spend draining a node  
+      #the default value is 0 which means the node is 
+      #drained without any time limit    
+      nodeDrainTimeout: string
+    #nodePools is an array that describes a group of   
+    #worker nodes in the cluster with the same configuration
+    nodePools:
+    #name of the worker node pool
+    #must be unique in the cluster
+    - name: string 
+      #labels are an optional map of string keys and values  
+      #to organize and categorize objects
+      #propagated to the created nodes
+      labels: map[string]string
+      #taints specifies optional taints to register the  
+      #Node API object with; user-defined taints are  
+      #propagated to the created nodes
+      taints:
+        #key is the taint key to be applied to a node
+        -  key: string
+        #value is the taint value corresponding to the key
+           value: string
+        #effect is the effect of the taint on pods
+        #that do not tolerate the taint; valid effects are
+        #`NoSchedule`, `PreferNoSchedule`, `NoExecute`
+           effect: string
+        #timeAdded is the time when the taint was added
+        #only written by the system for `NoExecute` taints
+           timeAdded: time
+      #replicas is the number of nodes in the pool
+      #worker nodePool can have from 0 to 150 nodes
+      #value of `nil` means the field is not reconciled, 
+      #allowing external services like autoscalers  
+      #to choose the number of nodes for the nodePool
+      #by default CAPI's `MachineDeployment` will pick 1
+      #NOTE: a cluster provisioned with 0 worker nodes/nodepools 
+      #is not assigned any load balancer services
+      replicas: int32
+      #vmClass is the name of the VirtualMachineClass 
+      #which describes the virtual hardware settings 
+      #to be used for each node in the pool 
+      #vmClass controls the CPU and memory available   
+      #to the node and the requests and limits on 
+      #those resources; to list available vm classes run 
+      #`kubectl describe virtualmachineclasses`
+      vmClass: string
+      #storageClass to be used for storage of the disks 
+      #which store the root filesystems of the nodes 
+      #to list available storage classes run
+      #`kubectl describe ns`
+      storageClass: string
+      #volumes is the optional set of PVCs to create 
+      #and attach to each node for high-churn worker node 
+      #components such as the container runtime
+      volumes: 
+        #name of this PVC to be used as the suffix (node.name)
+        - name: string
+          #mountPath is the directory where the volume   
+          #device is mounted; takes the form /dir/path
+          mountPath: string
+          #capacity is the PVC capacity
+          capacity:
+            #storage to be used for the disk
+            #volume; if not specified defaults to 
+            #`topology.nodePools[*].storageClass`
+            storage: size in GiB
+      #tkr.reference.name points to the TKR NAME 
+      #to be used by `spec.topology.nodePools[*]` nodes; supported
+      #format is `v1.21.2---vmware.1-tkg.1.ee25d55`
+      #currently all `tkr.reference.name` fields must match
+      tkr:  
+        reference:
+          name: string
+      #nodeDrainTimeout is the total amount of time 
+      #the controller will spend draining a node  
+      #the default value is 0 which means the node is 
+      #drained without any time limit    
+      nodeDrainTimeout: string
+  #settings are optional runtime configurations 
+  #for the cluster, including persistent storage 
+  #for pods and node network customizations 
+  settings:
+    #storage defines persistent volume (PV) storage entries 
+    #for container workloads; note that the storage used for 
+    #node disks is defined by `topology.controlPlane.storageClass` 
+    #and by `spec.topology.nodePools[*].storageClass`
+    storage:
+      #classes is a list of persistent volume (PV) storage 
+      #classes to expose for container workloads on the cluster  
+      #any class specified must be associated with the 
+      #vSphere Namespace where the cluster is provisioned
+      #if omitted, all storage classes associated with the  
+      #namespace will be exposed in the cluster
+      classes: [string]
+      #defaultClass treats the named storage class as the default
+      #for the cluster; because all namespaced storage classes 
+      #are exposed if specific `classes` are not named,
+      #classes is not required to specify a defaultClass
+      #many workloads, including TKG Extensions and Helm,
+      #require a default storage class 
+      #if omitted, no default storage class is set
+      defaultClass: string
+    #netowrk defines custom networking for cluster workloads
+    network:
+      #cni identifies the CNI plugin for the cluster
+      #use to override the default CNI set in the 
+      #tkgservicesonfiguration spec, or when customizing  
+      #network settings for the default CNI
+      cni:
+        #name is the name of the CNI plugin to use; supported
+        #values are `antrea`, `calico`, `antrea-nsx-routed`
+        name: string
+      #pods configures custom networks for pods
+      #defaults to 192.168.0.0/16 if CNI is `antrea` or `calico` 
+      #defaults to empty if CNI is `antrea-nsx-routed`
+      #custom subnet size must equal or exceed /24
+      #use caution before seeting CIDR range other than /16
+      #cannot overlap with Supervisor Cluster workload network 
+      pods:
+        #cidrBlocks is an array of network ranges; supplying 
+        #multiple ranges may not be supported by all CNI plugins
+        cidrBlocks: [string]
+      #services configures custom network for services
+      #defaults to 10.96.0.0/12
+      #cannot overlap with Supervisor Cluster workload network 
+      services:
+        #cidrBlocks is an array of network ranges; supplying
+        #multiple ranges many not be supported by all CNI plugins
+        cidrBlocks: [string]
+      #serviceDomain specifies the service domain for the cluster
+      #defaults to `cluster.local`
+      serviceDomain: string
+      #proxy configures proxy server to be used inside the cluster
+      #if omitted no proxy is configured 
+      proxy:
+        #httpProxy is the proxy URI for HTTP connections
+        #to endpoints outside the cluster
+        #takes form `http://<user>:<pwd>@<ip>:<port>`
+        httpProxy: string
+        #httpsProxy is the proxy URL for HTTPS connections 
+        #to endpoints outside the cluster
+        #takes the frorm `http://<user>:<pwd>@<ip>:<port>`
+        httpsProxy: string
+        #noProxy is the list of destination domain names, domains, 
+        #IP addresses, and other network CIDRs to exclude from proxying
+        #must include Supervisor Cluster Pod, Egress, Ingress CIDRs
+        noProxy: [string]
+      #trust configures additional certificates for the cluster
+      #if omitted no additional certificate is configured
+      trust: 
+        #additionalTrustedCAs are additional trusted certificates 
+        #can be additional CAs or end certificates
+        additionalTrustedCAs:
+          #name is the name of the additional trusted certificate
+          #must match the name used in the filename
+          - name: string
+            #data holds the contents of the additional trusted cert 
+            #PEM Public Certificate data encoded as base64 string
+            #such as `LS0tLS1C...LS0tCg==` where "..." is the 
+            #middle section of the long base64 string
+            data: string
