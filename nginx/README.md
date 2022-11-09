@@ -11,6 +11,7 @@
 
 ```bash
 kubectl create namespace ingress-nginx
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm install nginx ingress-nginx/ingress-nginx -n ingress-nginx
 ```
 
@@ -58,6 +59,7 @@ If TLS is enabled for the Ingress, a Secret containing the certificate and key m
 ```bash
 # Install MySQL so we have a TCP port we can expose
 kubectl create namespace mysql
+helm repo add bitnami https://charts.bitnami.com/bitnami
 helm install mysql bitnami/mysql -n mysql
 
 # Rertrieve configuration values from NGINX release
