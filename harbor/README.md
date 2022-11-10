@@ -31,7 +31,7 @@ metadata:
   namespace: mesh-system
 spec:
   ca:
-  secretName: ca-key-pair
+  secretName: harbor-ca-key-pair
 ```
 This is a simple `Issuer` that will sign certificates based on a private key. The certificate stored in the secret `ca-key-pair` can then be used to trust newly signed certificates by this `Issuer` in a Public Key Infrastructure (PKI) system.
 
