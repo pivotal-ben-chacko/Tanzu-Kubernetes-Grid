@@ -19,28 +19,28 @@ helm install nginx ingress-nginx/ingress-nginx -n ingress-nginx
 Example Ingress that makes use of the controller:
 ```bash
 apiVersion: networking.k8s.io/v1
-  kind: Ingress
-  metadata:
-    name: example
-    namespace: foo
-  spec:
-    ingressClassName: nginx
-    rules:
-      - host: www.example.com
-        http:
-          paths:
-            - pathType: Prefix
-              backend:
-                service:
-                  name: exampleService
-                  port:
-                    number: 80
-              path: /
-    # This section is only required if TLS is to be enabled for the Ingress
-    tls:
-      - hosts:
-        - www.example.com
-        secretName: example-tls
+kind: Ingress
+metadata:
+  name: example
+  namespace: foo
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: example.com
+      http:
+        paths:
+          - pathType: Prefix
+            backend:
+              service:
+                name: rabbitmq
+                port:
+                  number: 80
+            path: /
+  # This section is only required if TLS is to be enabled for the Ingress
+  tls:
+    - hosts:
+      - www.example.com
+      secretName: example-tls
 
 If TLS is enabled for the Ingress, a Secret containing the certificate and key must also be provided:
 
