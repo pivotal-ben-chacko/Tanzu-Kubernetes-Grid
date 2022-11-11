@@ -119,6 +119,22 @@ This is a simple `Issuer` that will sign certificates based on a private key. Th
     -----END CERTIFICATE-----
     ```
 
+   We should also see annotations in the secret that show the secret is managed by cert-manager
+    
+    ```sh
+    kubectl get secret harbor-tls-secret -n tanzu-system-registry -o json | jq -r '.metadata .annotations'
+    {
+      "cert-manager.io/alt-names": "harbor.skynetsystems.io",
+      "cert-manager.io/certificate-name": "harbor-tls",
+      "cert-manager.io/common-name": "",
+      "cert-manager.io/ip-sans": "",
+      "cert-manager.io/issuer-group": "",
+      "cert-manager.io/issuer-kind": "Issuer",
+      "cert-manager.io/issuer-name": "ca-issuer",
+      "cert-manager.io/uri-sans": ""
+    }
+    ```
+
 5. Finally we need to tell harbor to use use this TLS key pair that is managed by cert-manager. To do this we update the following property in the values.yaml file to: 
 
     ```sh
