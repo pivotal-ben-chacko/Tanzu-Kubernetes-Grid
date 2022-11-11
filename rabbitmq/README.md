@@ -8,6 +8,7 @@ RabbitMQ is an open source general-purpose message broker that is designed for c
 Use Helm to install the package. Ensure you have already created the rabbitmq namespace for the package to install to.
 ```bash
 kubectl create ns rabbitmq
+
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
 helm install rabbitmq bitnami/rabbitmq -n rabbitmq
