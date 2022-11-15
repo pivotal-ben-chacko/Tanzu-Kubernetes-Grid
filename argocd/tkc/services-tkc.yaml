@@ -1,0 +1,25 @@
+apiVersion: run.tanzu.vmware.com/v1alpha2
+kind: TanzuKubernetesCluster
+metadata:
+  name: services
+  namespace: h2o
+spec:
+  topology:
+    controlPlane:
+      replicas: 1
+      vmClass: guaranteed-medium
+      storageClass: vc01cl01-t0compute
+      tkr:
+        reference:
+          name: v1.22.9---vmware.1-tkg.1.cc71bc8
+    nodePools:
+    - name: worker-nodepool-a1
+      replicas: 1
+      vmClass: best-effort-xlarge
+      storageClass: vc01cl01-t0compute
+      tkr:
+        reference:
+          name: v1.22.9---vmware.1-tkg.1.cc71bc8
+  settings:
+    storage:
+      defaultClass: vc01cl01-t0compute
