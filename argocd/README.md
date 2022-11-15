@@ -27,6 +27,7 @@ To prevent this redirect loop from occurring we an add an annotation that instru
 
 Below is an example of how this can be accomplished with an NGINX ingress object:
 
+
 ```bash
 apiVersion: networking.k8s.io/v1
 kind: Ingress
