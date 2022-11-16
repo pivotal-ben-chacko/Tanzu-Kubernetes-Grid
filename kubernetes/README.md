@@ -7,11 +7,23 @@
  - Run your application with at least two replicas to maintain HA.
  - Limit the scope of access for developers to just the namespace they require to develop in. This will limit the chance that a developer could accidentally delete resources in another namespace. 
  
+
+    **Supervisor Cluster**
+    
+    The supervisor cluster is heavily restricted. Only the administrator@vsphere.local user has limited access to some of the cluster resources. The only user that has true administrative access to the supervisor cluster is root which is a special user found only if you *ssh* into a supervisor control plane node. In practice you should never edit resources in the supervisor cluster.
+
 **Limiting access to namespaces**
 
 1. First add the user or group to the namespace you would like the user or group to have access to. Ensure you only select *Read Only* privileges.
 
-![enter image description here](user.png)
+    ![enter image description here](user.png)
+
+    **Supported User and Group Fields**
+    
+    | Field |Discription  |
+    |--|--|
+    | http://sso:USER-NAME@domain/ | For example, a local user name, such as `sso:joe@vsphere.local`. |
+    |http://sso:GROUP-NAME@domain/ |For example, a group name from a directory server integrated with the vCenter Server, such as `sso:devs@ldap.example.com`. |
 
 3. Then, in the cluster you want to give the user or group access to a namespace, apply the following RoleBinding to give edit privileges to the namespace.
 
@@ -32,4 +44,5 @@
     ```
 
  
+
 
