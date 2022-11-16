@@ -10,9 +10,10 @@
 **Limiting access to namespaces**
 
 1. First add the user or group to the namespace you would like the user or group to have access to. Ensure you only select *Read Only* privileges.
+
 ![enter image description here](user.png)
 
-2. Then, in the cluster you want to give the user or group access to a namespace, apply the following RoleBinding to give edit privileges to the namespace.
+3. Then, in the cluster you want to give the user or group access to a namespace, apply the following RoleBinding to give edit privileges to the namespace.
 
     ```sh
     kind: RoleBinding
