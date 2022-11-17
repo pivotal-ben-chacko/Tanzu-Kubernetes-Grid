@@ -138,4 +138,38 @@ subjects:
   name: sso:infra@vsphere.local
   apiGroup: rbac.authorization.k8s.io
 ```  
+
+## Pod Resource Management
+
+One of the most important aspects of managing applications in Kubernetes is appropriately managing pod resources. Managing pod resources consists of managing CPU and memory to optimize the overall utilization of your Kubernetes cluster.
+
+For the scheduler to optimize resources and make intelligent placement decisions, it needs to understand the requirements of an application. As an example if a container needs a minimum of 2GB to perform, we need to define this in our pod spec, so the scheduler knows that the container requires 2GB of memory on the host to which it schedules the container.
+
+**Resource Request**
+
+ ```sh
+apiVersion: v1
+kind: Pod
+metadata:
+  name: memory-req
+spec:
+  containers:
+  - name: memory-req
+    image: nginx
+    resources: 
+      requests:
+        memory: 2000Mi
+```
+
+A resource request defines that a container requires X amount of CPU or memory to be scheduled. If you were to specify that the pod requires 8GB of memory and all your nodes have 7.5GB of memory, the pod would not be scheduled. If the pod can not be scheduled, it will go into a pending state.
+
+To determine the available free resources in your cluster, use the following command to determine the available resources on each node.
+
+```sh
+kubectl top nodes
+```
+
+**Resource Limits**
+
+Resource limits define the maximum CPU or memory that a pod is given. With CPU limits, the container is throttled from using more than its specified limit. With memory limits, the pod is restarted if it reaches its limit. The pod might be restarted on the same host or a different host within the cluster.
  
