@@ -42,7 +42,100 @@
       name: sso:test@vsphere.local #sso:<username>@<domain>
       apiGroup: rbac.authorization.k8s.io
     ```
+## Understanding Kubernetes RBAC
 
+In Kubernetes, **ClusterRoles** and **Roles** define the actions a user can perform within a cluster or namespace, respectively. You can assign these roles to Kubernetes **subjects** (users, groups, or service accounts) with **role bindings and cluster role bindings**. 
+
+A Role always sets permissions within a particular  [namespace](https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces); when you create a Role, you have to specify the namespace it belongs in.
+
+ClusterRole, by contrast, is a non-namespaced resource. The resources have different names (Role and ClusterRole) because a Kubernetes object always has to be either namespaced or not namespaced; it can't be both.
+
+ClusterRoles have several uses. You can use a ClusterRole to:
+
+1.  define permissions on namespaced resources and be granted access within individual namespace(s)
+2.  define permissions on namespaced resources and be granted access across all namespaces
+3.  define permissions on cluster-scoped resources
+
+If you want to define a role within a namespace, use a Role; if you want to define a role cluster-wide, use a ClusterRole.
+
+**Role and RoleBinding**
+The following role / rolebinding will allow read write operations for the user Codey in the namespace dev-namespace.
+```sh
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: read-write
+  namespace: dev-namespace
+rules:
+- apiGroups:
+  - "*"
+  resources:
+  - batch
+  - deployments
+  - daemonsets
+  - configmaps
+  - cronjobs
+  - jobs
+  - pods
+  - replicasets
+  - services
+  - secrets
+  - statefulsets
+  - ingresses
+  - replicationcontrollers
+  - horizontalpodautoscalers
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  name: read-write-binding  
+roleRef:  
+  kind: Role
+  name: read-write  
+  apiGroup: rbac.authorization.k8s.io  
+subjects:  
+- kind: User  
+  name: codey  
+  apiGroup: rbac.authorization.k8s.io
+```
+
+Similarly the following ClusterRole / ClusterRolebinding gives the user, infra-monitor, rights to view and list resources across the cluster but no edit or write privileges.
+
+```sh
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: infra-monitor
+rules:
+- apiGroups:
+  - ""
+  resources: ["*"]
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: infra-monitor-binding
+roleRef:
+  kind: ClusterRole
+  name: infra-monitor
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: User
+  name: sso:infra@vsphere.local
+  apiGroup: rbac.authorization.k8s.io
+```  
  
-
-
