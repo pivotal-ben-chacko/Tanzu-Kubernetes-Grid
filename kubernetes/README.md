@@ -172,4 +172,71 @@ kubectl top nodes
 **Resource Limits**
 
 Resource limits define the maximum CPU or memory that a pod is given. With CPU limits, the container is throttled from using more than its specified limit. With memory limits, the pod is restarted if it reaches its limit. The pod might be restarted on the same host or a different host within the cluster.
- 
+
+Specifying limits for containers is a good practice to ensure that applications are allotted their fair share of resources within the cluster.
+
+```sh
+apiVersion: v1
+kind: Pod
+metadata:
+  name: limits
+  namespace: limits-ns
+spec:
+  containers:
+  - name: frontend
+    image: nginx:alpine
+    resources:
+      limits:
+        cpu: "700m"
+        memory: "200Mi"
+      requests:
+        cpu: "700m"
+        memory: "200Mi"
+```
+
+When a pod is created, it's assigned one of the following Quality of Service (QoS) classes
+
+ - Guarenteed (when requests and limits are the same for both memory and CPU)
+ - Burstable (when limits are set higher then the requests)
+ - Best Effort (when no requests or limits are set)
+
+**PodDisruptionBudgets**
+
+On occasion Kubernetes might need to evict pods from a host. There are two types of evictions: voluntary and involuntary disruptions.
+
+ - Involuntary disruptions can be caused by hardware failure, network
+   issues, kernel panics or a node being out of resources.
+ - Voluntary evictions can be caused by performing maintenance on the
+   cluster, the cluster autoscaler deallocating nodes, or updating pod
+   templates.
+
+To ensure uptime of the application, you can set a PodDisruptionBudget to ensure uptime of the application when pods need to be evicted. A PodDisruptionBudget allows you to set a policy on the minimum available and maximum un-available pods during voluntary eviction events.
+
+Example:
+```sh
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: frontend-pdb
+spec:
+  minAvailable: 5
+  selector:
+    matchLabels:
+      app: frontend
+```
+
+ In the above example we specify that there must be at least five replicas available at any given time.
+
+In the example below we will specify a maximum number of replicas that can be unavailable.
+
+```sh
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: frontend-pdb
+spec:
+  maxUnavailable: 20%
+  selector:
+    matchLabels:
+      app: frontend
+```
