@@ -1,4 +1,4 @@
-![enter image description here](best.png)
+![kubernetes](kubernetes.jpg)
 
 ## Kubernetes Best Practices
 
