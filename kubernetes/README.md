@@ -218,6 +218,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: frontend-pdb
+  namespace: dev-ns
 spec:
   minAvailable: 5
   selector:
@@ -234,6 +235,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: frontend-pdb
+  namespace: dev-ns
 spec:
   maxUnavailable: 20%
   selector:
