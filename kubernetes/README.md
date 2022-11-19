@@ -300,3 +300,38 @@ c20e23877b741       a8780b506fa4e       7 hours ago         Running             
 0a6e4a5510c6c       d8c2bca7c9ec1       8 hours ago         Running             rabbitmq                           0                   91cf266cf5623
 1d333f889f709       88736fe827391       8 hours ago         Running             nginx                              0                   0750d1
 ```
+
+## Configuring Liveness, Readiness and Startup Probes
+
+The kubelet aka the "node agent" that runs on each node uses liveness probes to know when to restart a container. For example, liveness probes could catch a deadlock, where an application is running, but unable to make progress.
+
+```sh
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    test: liveness
+  name: liveness-exec
+spec:
+  containers:
+  - name: liveness
+    image: registry.k8s.io/busybox
+    args:
+    - /bin/sh
+    - -c
+    - touch /tmp/healthy; sleep 30; rm -f /tmp/healthy; sleep 600
+    livenessProbe:
+      exec:
+        command:
+        - cat
+        - /tmp/healthy
+      initialDelaySeconds: 5
+      periodSeconds: 5
+```
+
+In the configuration file above there are two fields of concern:
+
+ 1. **periodSeconds** - specifies that the kubelet should perform a liveness probe every 5 seconds.
+ 2. **initialDelaySeconds** - tells the kubelet that it should wait 5 seconds before performing the first probe.
+
+To perform a probe, the kubelet executes the command `cat /tmp/healthy` in the target container. If the command succeeds, it returns 0, and the kubelet considers the container to be alive and healthy. If the command returns a non-zero value, the kubelet kills the container and restarts it.
