@@ -301,6 +301,10 @@ c20e23877b741       a8780b506fa4e       7 hours ago         Running             
 1d333f889f709       88736fe827391       8 hours ago         Running             nginx                              0                   0750d1
 ```
 
+**Prevention**
+
+ To prevent such an attack, use Tanzu Mission Control (TMC) and apply a *baseline* or *strict* security policy to the cluster. These policies will restrict risky actions such as mounting volumes using hostpath and privileged escalation among other things.
+
 ## Configuring Liveness, Readiness and Startup Probes
 
 The kubelet aka the "node agent" that runs on each node uses liveness probes to know when to restart a container. For example, liveness probes could catch a deadlock, where an application is running, but unable to make progress.
@@ -335,3 +339,7 @@ In the configuration file above there are two fields of concern:
  2. **initialDelaySeconds** - tells the kubelet that it should wait 5 seconds before performing the first probe.
 
 To perform a probe, the kubelet executes the command `cat /tmp/healthy` in the target container. If the command succeeds, it returns 0, and the kubelet considers the container to be alive and healthy. If the command returns a non-zero value, the kubelet kills the container and restarts it.
+
+**Readiness Probe**
+
+Sometimes, applications are temporarily unable to serve traffic. For example, an application might need to load large data or configuration files during startup, or depend on external services after startup. In such cases, you don't want to kill the application, but you don't want to send it requests either. Kubernetes provides readiness probes to detect and mitigate these situations. A pod with containers reporting that they are not ready does not receive traffic through Kubernetes Services.
