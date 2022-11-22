@@ -197,6 +197,69 @@ When a pod is created, it's assigned one of the following Quality of Service (Qo
  - Burstable (when limits are set higher then the requests)
  - Best Effort (when no requests or limits are set)
 
+**Example:**
+Let's take a look at an example were we have a misbehaving app that has no resource limits set to throttle a potential CPU runaway. 
+
+```sh 
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    test: load-test
+  name: load-test
+spec:
+  containers:
+  - name: load-test
+    image: nginx
+    args:
+    - /bin/bash
+    - -c
+    - dd if=/dev/zero of=/dev/null | dd if=/dev/zero of=/dev/null | dd if=/dev/zero of=/dev/null | dd if=/dev/zero of=/dev/null
+```
+
+Give the metrics server about a minute to collect metrics on the pod and then run the following: 
+
+```sh
+kubectl top pod load-test
+NAME        CPU(cores)   MEMORY(bytes)
+load-test   3935m        0Mi
+```
+You can see above that the pod is using roughly 4 cores of CPU to run the workload. This pod is running on a 4 CPU node and therefor is using up all the CPU resources available to the node. This situation would starve other workloads from receiving its fair share of the CPU.
+
+In the next example, we will apply a *resource limit*  to limit the amount of CPU and memory the pod can consume. 
+
+```sh
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    test: load-test
+  name: load-test
+spec:
+  containers:
+  - name: load-test
+    image: nginx
+    args:
+    - /bin/bash
+    - -c
+    - dd if=/dev/zero of=/dev/null | dd if=/dev/zero of=/dev/null | dd if=/dev/zero of=/dev/null | dd if=/dev/zero of=/dev/null
+    resources:
+      limits:
+        cpu: "700m"
+        memory: "200Mi"
+      requests:
+        cpu: "700m"
+        memory: "200Mi"
+```
+
+After applying the resource limits you can see below that the pod is now limited to the amount of CPU and memory that we have defined as the maximum the pod can utilize. 
+
+```sh
+kubectl top pod load-test
+NAME        CPU(cores)   MEMORY(bytes)
+load-test   697m         0Mi
+```
+
 **PodDisruptionBudgets**
 
 On occasion Kubernetes might need to evict pods from a host. There are two types of evictions: voluntary and involuntary disruptions.
