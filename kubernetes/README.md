@@ -408,3 +408,86 @@ To perform a probe, the kubelet executes the command `cat /tmp/healthy` in the t
 **Readiness Probe**
 
 Sometimes, applications are temporarily unable to serve traffic. For example, an application might need to load large data or configuration files during startup, or depend on external services after startup. In such cases, you don't want to kill the application, but you don't want to send it requests either. Kubernetes provides readiness probes to detect and mitigate these situations. A pod with containers reporting that they are not ready does not receive traffic through Kubernetes Services.
+
+
+## Horizontal Pod Autoscaler (HPA)
+
+The Kubernetes HPA allows you to scale your deployments based on CPU, memory or custom metrics. It also allows you to set the minimum and maximum number of pods available at any given time. Setting the minimum and maximum is critical as you don't want the HPA to scale the replicas to an infinite amount due to a misbehaving app.
+
+The HPA has the following default setting for sync metrics, upscaling and downscaling replicas.
+
+ - *horizontal-pod-autoscaler-sync-period*: Default of 30s for syncing metrics
+ - horizontal-pod-autoscaler-upscale-delay: Default of 3m between 2 upscale operations.
+ - horizontal-pod-autoscaler-upscale-delay: Default of 5m between 2 downscale operations.
+
+**Example:**
+
+Run the following deployment
+```sh
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-apache
+spec:
+  selector:
+    matchLabels:
+      run: php-apache
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: php-apache
+    spec:
+      containers:
+      - name: php-apache
+        image: registry.k8s.io/hpa-example
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            cpu: 500m
+          requests:
+            cpu: 200m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: php-apache
+  labels:
+    run: php-apache
+spec:
+  ports:
+  - port: 80
+  selector:
+    run: php-apache
+```
+
+Now we specify a HorizontalPodAutoscaler that maintains between 1 and 10 replicas. The HPA will decrease or increase the number of replicas to maintain an average CPU utilization of 50% across all pods.
+
+```sh
+kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=10
+```
+
+Check the current status of the HPA by running: `kubectl get hpa`
+
+**Increase Load**
+Next we increase the load on the pod to see how the autoscaler will react. To do this we'll start a different pod to send continuous requests to the php-apache service to simulate traffic.
+
+```sh
+kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://php-apache; done"
+```
+
+Now run the following and watch the status of the HPA
+
+```sh
+kubectl get hpa php-apache --watch
+NAME         REFERENCE               TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
+php-apache   Deployment/php-apache   0%/50%    1         10        1          58m
+php-apache   Deployment/php-apache   249%/50%   1         10        1          58m
+php-apache   Deployment/php-apache   249%/50%   1         10        4          58m
+php-apache   Deployment/php-apache   249%/50%   1         10        5          59m
+php-apache   Deployment/php-apache   56%/50%    1         10        5          59m
+php-apache   Deployment/php-apache   49%/50%    1         10        6          60m
+```
+
+You can see that the autoscaler, increased the replica count to 6 which allowed the CPU utilization to settle at below 50% across all pods.
