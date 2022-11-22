@@ -66,7 +66,7 @@ Using a deployment, you don’t have to deal with pods manually. You can just de
 
 ## Ingress
 
-![](ingrtess.png)
+![](ingress.png)
 
 Using the concepts described above, you can create a cluster of nodes, and launch deployments of pods onto the cluster. There is one last problem to solve, however: allowing external traffic to your application.
 
