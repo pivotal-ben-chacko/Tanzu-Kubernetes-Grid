@@ -198,7 +198,9 @@ When a pod is created, it's assigned one of the following Quality of Service (Qo
  - Best Effort (when no requests or limits are set)
 
 **Example:**
+
 Let's take a look at an example were we have a misbehaving app that has no resource limits set to throttle a potential CPU runaway. 
+
 
 ```sh 
 apiVersion: v1
