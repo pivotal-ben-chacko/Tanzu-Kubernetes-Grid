@@ -226,7 +226,7 @@ kubectl top pod load-test
 NAME        CPU(cores)   MEMORY(bytes)
 load-test   3935m        0Mi
 ```
-You can see above that the pod is using roughly 4 cores of CPU to run the workload. This pod is running on a 4 CPU node and therefor is using up all the CPU resources available to the node. This situation would starve other workloads from receiving its fair share of the CPU.
+You can see above that the pod is using roughly 4 cores of CPU to run the workload. This pod is running on a 4 core node and therefor is using up all the CPU resources available to the node. This situation would starve other workloads from receiving its fair share of the CPU.
 
 In the next example, we will apply a *resource limit*  to limit the amount of CPU and memory the pod can consume. 
 
