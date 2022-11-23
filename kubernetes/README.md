@@ -305,6 +305,59 @@ spec:
       app: frontend
 ```
 
+## Namespace Resource Management 
+
+Similar to limiting resources consumable by a pod, you can limit the available recources within a namespace to prevent over consumption.
+
+Example:
+
+```sh
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: compute-quota
+  namespace: dev
+spec:
+  hard:
+    requests.cpu: "10"
+    requests.memory: 100Gi
+    limits.cpu: "10"
+    limits.memory: 100Gi
+```
+
+The preceding example sets a hard limit on the total resources that can be consumbed by all workloads running in the namespace.
+
+We can also create a LimitRange object in our Namespace which can be used to set limits on resources on containers (Pods) running within the namespace. This is used to provide default limit values for Pods which do not specify this value themselves to equally distribute resources within a namespace.
+
+```sh
+apiVersion: "v1"
+kind: "LimitRange"
+metadata:
+  name: "resource-limits"
+spec:
+  limits:
+    - type: "Pod"
+      max:
+        cpu: "2"
+        memory: "1Gi"
+      min:
+        cpu: "200m"
+        memory: "6Mi"
+    - type: "Container"
+      max:
+        cpu: "2"
+        memory: "1Gi"
+      min:
+        cpu: "100m"
+        memory: "4Mi"
+      default:
+        cpu: "300m"
+        memory: "200Mi"
+      defaultRequest:
+        cpu: "200m"
+        memory: "100Mi"
+```
+
 ## Securing Kubernetes
 
 The term “Container Breakout” refers to the event where a malicious or legitimate user is able to escape the container isolation and access resources (e.g. filesystem, processes, network interfaces) on the host machine.
