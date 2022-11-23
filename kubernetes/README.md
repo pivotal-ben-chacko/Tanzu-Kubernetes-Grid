@@ -549,7 +549,7 @@ Now run the following and watch the status of the HPA
 ```sh
 kubectl get hpa php-apache --watch
 NAME         REFERENCE               TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
-php-apache   Deployment/php-apache   0%/50%    1         10        1          58m
+php-apache   Deployment/php-apache   0%/50%     1         10        1          58m
 php-apache   Deployment/php-apache   249%/50%   1         10        1          58m
 php-apache   Deployment/php-apache   249%/50%   1         10        4          58m
 php-apache   Deployment/php-apache   249%/50%   1         10        5          59m
