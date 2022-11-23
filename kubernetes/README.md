@@ -6,6 +6,8 @@
 
 - [Pod Resource Management](https://github.com/pivotal-ben-chacko/Tanzu-Kubernetes-Grid/tree/main/kubernetes#pod-resource-management)
 
+- [Namespace Resource Management](https://github.com/pivotal-ben-chacko/Tanzu-Kubernetes-Grid/tree/main/kubernetes#namespace-resource-management)
+
 - [Securing Kubernetes](https://github.com/pivotal-ben-chacko/Tanzu-Kubernetes-Grid/tree/main/kubernetes#securing-kubernetes)
 
 - [Configuring Liveness, Readines and Startup Proobe](https://github.com/pivotal-ben-chacko/Tanzu-Kubernetes-Grid/tree/main/kubernetes#configuring-liveness-readiness-and-startup-probes)
