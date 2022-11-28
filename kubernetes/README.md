@@ -56,6 +56,16 @@
       name: sso:test@vsphere.local #sso:<username>@<domain>
       apiGroup: rbac.authorization.k8s.io
     ```
+
+**Namespace annotation**
+
+After creating a namespace you want to attach some metadata to it. For example, the contact information for the team that will be utilizing the namespace. Generally this will be in the form of annotations.
+
+```sh
+ns='dev-namespaace'
+kubectl create namespace ${ns}
+kubectl annotate namespace ${ns} annotation_key=annotation_value
+```
 ## Understanding Kubernetes RBAC
 
 In Kubernetes, **ClusterRoles** and **Roles** define the actions a user can perform within a cluster or namespace, respectively. You can assign these roles to Kubernetes **subjects** (users, groups, or service accounts) with **role bindings and cluster role bindings**. 
@@ -558,3 +568,70 @@ php-apache   Deployment/php-apache   49%/50%    1         10        6          6
 ```
 
 You can see that the autoscaler, increased the replica count to 6 which allowed the CPU utilization to settle at below 50% across all pods.
+
+## Updating Deployments
+
+Deployments are declarative objects that describe a deployed application. The two most common operations on a Deployment are scalling and application updates.
+
+**Scalling a Deployment**
+
+To scale up a deployment, you would edit your YAML file to increase the number of replicas:
+
+```sh
+...
+spec:
+  replicas: 4
+...
+```
+
+**Updating a container image**
+
+The other common use case for updating a Deployment is to roll out a new version of the software running in one or more containers. In this case you should update the software: 
+
+```sh
+...
+      containers:
+      - image: nginx:1.22
+...
+```
+
+And then annotate the deployment to record the change.
+
+```sh
+...
+spec:
+  ...
+  template:
+    metadata:
+      annotations:
+        kubernetes.io/change-cause: "Update nginx version"
+...
+```
+
+Run the following command to get the current status of the deployment:
+
+```sh
+kubectl rollout status deploy frontend
+deployment "frontend" successfully rolled out
+```
+
+**Rollout history**
+
+Kubernetes deployments maintain a history of rollouts, which can be useful for understanding the history of the rollouts and to roll back to a specific version in case of problems. 
+
+Example:
+
+```sh
+kubectl rollout history deployment frontend 
+REVISION  CHANGE-CAUSE
+1         increase replica count
+2         update ngninx version to 1.22
+```
+
+If there is an issue with the latest release and you want to rollback while you investigate. You can simply undo the last rollout: 
+
+```sh
+kubectl rollout undo deploy frontend
+deployment.apps/frontend rolled back
+```
+
