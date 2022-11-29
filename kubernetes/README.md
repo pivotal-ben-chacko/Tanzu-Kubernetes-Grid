@@ -740,3 +740,21 @@ Enter the descheduler. This project runs as a Kubernetes Job that aims at killin
 You can use a variety of strategies to delete pods, which are defined in a [Config Map](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/).
 
 the `LowNodeUtilization` strategy can help with our problem of having one node that is heavily under utilized.
+
+```sh
+apiVersion: "descheduler/v1alpha1"
+kind: "DeschedulerPolicy"
+strategies:
+  "LowNodeUtilization":
+     enabled: true
+     params:
+       nodeResourceUtilizationThresholds:
+         thresholds:
+           "cpu" : 20
+           "memory": 20
+           "pods": 20
+         targetThresholds:
+           "cpu" : 50
+           "memory": 50
+           "pods": 50
+```
