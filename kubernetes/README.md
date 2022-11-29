@@ -635,3 +635,86 @@ kubectl rollout undo deploy frontend
 deployment.apps/frontend rolled back
 ```
 
+## Pod Topology Spread Constraints
+
+You can use topology spread constraints to control how Pods are spread across your cluster among failure-domains such as regions, zones, nodes, and other user-defined topology domains. This can help to achieve high availability as well as efficient resource utilization.
+
+As an example you may want to evenly distribute pods across zones. In Zone A you have 6 nodes and in Zone B you have 3 nodes. It's possible that if you apply a deployment with 6 replicas that all 6 replicas will land in Zone A and none in Zone B where in reality what you wanted was 3 replicas in Zone A and 3 replicas in Zone B.
+
+In order to have the pods land evenly across the two zones we can use *topologySpreadConstraints* 
+
+```sh
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: frontend
+  name: frontend
+  namespace: frontend
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: zone
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: frontend
+      containers:
+      - image: nginx:1.22
+        name: frontend
+```
+
+From that manifest:
+
+- **topologyKey: zone** implies the even distribution will only be applied to nodes that are labelled *zone: <any value>*
+
+To simulate having more then one zone you can apply a label of zone=A to a quarter of the nodes in your cluster and the remaining can be labeled zone=B
+
+Use the following command to label your workers zone A
+
+```sh
+kubectl label node worker-node-xxxx zone=A
+```
+
+After you have labeled all the nodes, it should look something like:
+
+```sh
+k get node --label-columns=zone
+NAME                                               STATUS   ROLES                  AGE    VERSION            ZONE
+worker-control-plane-x4q2c                         Ready    control-plane,master   8d     v1.22.9+vmware.1
+worker-worker-nodepool-a1-vznjq-74b9888f7b-49dvk   Ready    <none>                 8d     v1.22.9+vmware.1   A
+worker-worker-nodepool-a1-vznjq-74b9888f7b-85f49   Ready    <none>                 8d     v1.22.9+vmware.1   A
+worker-worker-nodepool-a1-vznjq-74b9888f7b-cwfhn   Ready    <none>                 3h1m   v1.22.9+vmware.1   B
+```
+
+Now apply the yaml file above and ensure that the 6 replica pods have landed evenly across zones A and B. 
+
+```sh
+kubectl get pod -n frontend -o wide
+NAME                        READY   STATUS    RESTARTS   AGE     IP              NODE                                               NOMINATED NODE   READINESS GATES
+frontend-65ff846b56-5kpcq   1/1     Running   0          3m38s   192.168.3.181   worker-worker-nodepool-a1-vznjq-74b9888f7b-cwfhn   <none>           <none>
+frontend-65ff846b56-b7cdg   1/1     Running   0          3m38s   192.168.3.182   worker-worker-nodepool-a1-vznjq-74b9888f7b-cwfhn   <none>           <none>
+frontend-65ff846b56-cgvng   1/1     Running   0          3m38s   192.168.2.89    worker-worker-nodepool-a1-vznjq-74b9888f7b-49dvk   <none>           <none>
+frontend-65ff846b56-nkch5   1/1     Running   0          3m38s   192.168.2.90    worker-worker-nodepool-a1-vznjq-74b9888f7b-49dvk   <none>           <none>
+frontend-65ff846b56-vgk4q   1/1     Running   0          3m38s   192.168.3.180   worker-worker-nodepool-a1-vznjq-74b9888f7b-cwfhn   <none>           <none>
+frontend-65ff846b56-w2mc9   1/1     Running   0          3m38s   192.168.2.91    worker-worker-nodepool-a1-vznjq-74b9888f7b-49dvk   <none>           <none>
+```
+
+As you can see above, the pods have been evenly distributed across the two zones. 
+
+- 3 pods: worker-worker-nodepool-a1-vznjq-74b9888f7b-49dvk **zone A**
+
+- 3 pods: worker-worker-nodepool-a1-vznjq-74b9888f7b-cwfhn **zone B**
+
+For the most part the scheduler will evenly distribute pods across the cluster taking into consideration replicas already on a node all the while trying not to overload any one node, however this is only true during the creation of pods. 
+
+Kubernetes will try to to spread your pods intelligently when it creates them but will not proactively enforce a good spread afterwards. For example if a node goes down, 
