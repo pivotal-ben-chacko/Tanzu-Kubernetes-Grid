@@ -14,6 +14,9 @@
 
 - [Horizontal Pod Autoscaler (HPA)](https://github.com/pivotal-ben-chacko/Tanzu-Kubernetes-Grid/tree/main/kubernetes#horizontal-pod-autoscaler-hpa)
 
+- [Pod Topology Spread Constraints](https://github.com/pivotal-ben-chacko/Tanzu-Kubernetes-Grid/tree/main/kubernetes#pod-topology-spread-constraints)
+
+
 ## Kubernetes Best Practices
 
  - Base your images on well known trusted images to prevent supply chain attacks.
