@@ -735,7 +735,7 @@ At this point replicas of any new deployment may only be scheduled on the under 
 
 One way to bring back order is by doing a bit of chaos engineering. The scheduler can only fix a balance problem when pods are created.
 
-Enter the descheduler. This project runs as a Kubernetes Job that aims at killing pods when it thinks the cluster is unbalanced. You can run it once or as a Cron Job to run it periodically.
+Enter the [descheduler](https://github.com/kubernetes-sigs/descheduler). This project runs as a Kubernetes Job that aims at killing pods when it thinks the cluster is unbalanced. You can run it once or as a Cron Job to run it periodically.
 
 You can use a variety of strategies to delete pods, which are defined in a [Config Map](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/).
 
