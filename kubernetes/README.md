@@ -676,11 +676,17 @@ spec:
         name: frontend
 ```
 
+
 From that manifest:
 
-- **topologyKey: zone** implies the even distribution will only be applied to nodes that are labelled *zone: <any value>*
+- **maxSkew: 1** distribute pods in an absolute even manner
 
-To simulate having more then one zone you can apply a label of zone=A to a quarter of the nodes in your cluster and the remaining can be labeled zone=B
+- **topologyKey: zone** implies the even distribution will only be applied to nodes that are labelled with a zone id
+
+- **whenUnsatisfiable: DoNotSchedule:** do not schedule pods if it can’t satisfy even distribution of pods
+
+
+To simulate having more then one zone you can apply a label of zone=A to a third of the nodes in your cluster and the remaining can be labeled zone=B
 
 Use the following command to label your workers zone A
 
@@ -718,6 +724,19 @@ As you can see above, the pods have been evenly distributed across the two zones
 
 - 3 pods: worker-worker-nodepool-a1-vznjq-74b9888f7b-cwfhn **zone B**
 
+
+**Descheduler**
+
 For the most part the scheduler will evenly distribute pods across the cluster taking into consideration replicas already on a node all the while trying not to overload any one node, however this is only true during the creation of pods. 
 
-Kubernetes will try to to spread your pods intelligently when it creates them but will not proactively enforce a good spread afterwards. For example if a node goes down, 
+Kubernetes will try to to spread your pods intelligently when it creates them but will not proactively enforce a good spread afterwards. For example, if a node goes down, all the pods that were running on that node will re-scheduled and moved to the remaining healthy nodes. Once the failed node comes back online, there is no mechanism that will re-balance the cluster and your left with a heavily under utilized node. 
+
+At this point replicas of any new deployment may only be scheduled on the under utilized node meaning a loss of HA for the new deployment if the node were to go down again.
+
+One way to bring back order is by doing a bit of chaos engineering. The scheduler can only fix a balance problem when pods are created.
+
+Enter the descheduler. This project runs as a Kubernetes Job that aims at killing pods when it thinks the cluster is unbalanced. You can run it once or as a Cron Job to run it periodically.
+
+You can use a variety of strategies to delete pods, which are defined in a [Config Map](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/).
+
+the `LowNodeUtilization` strategy can help with our problem of having one node that is heavily under utilized.
