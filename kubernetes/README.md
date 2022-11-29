@@ -758,3 +758,35 @@ strategies:
            "memory": 50
            "pods": 50
 ```
+
+**Demo**
+
+Apply the following deployment in your cluster, ideally one with 3 worker nodes.
+
+```sh
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: backend
+  name: backend
+spec:
+  replicas: 150
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - image: nginx
+        name: backend
+```
+
+Once all pods are up and running take one of the nodes out of service using the following command:
+
+```sh
+kubectl drain <node-x> --ignore-daemonsets
+```
