@@ -1,4 +1,4 @@
-![secret](secret.jpg)
+![secret](secret.jpeg)
 
 ## Sealed Secrets
 
