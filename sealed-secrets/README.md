@@ -1,6 +1,6 @@
 ![secret](secret.png)
 
-## Sealed Secrets
+## Bitnami Sealed Secrets
 
 [Sealed Secrets](https://github.com/bitnami/sealed-secrets) are a "one-way" encrypted Secret that can be created by anyone, but can _only_ be decrypted by the controller running in the target cluster. **The Sealed Secret is safe to share publicly**, upload to git repositories, post to twitter, etc. Once the SealedSecret is safely uploaded to the target Kubernetes cluster, the sealed secrets controller will decrypt it and recover the original Secret.
 
