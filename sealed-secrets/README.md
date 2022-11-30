@@ -40,7 +40,7 @@ kubectl create secret generic mysecret --dry-run=client --from-literal=password=
 # Safe to upload mysealedsecret.yaml to git, etc.
 
 # Eventually upload mysealedsecret to cluster: 
-kubectl create -f mysealedsecret.json 
+kubectl create -f mysealedsecret.yaml 
 
 # The original secret now exists in the cluster.
 kubectl get secret mysecret
