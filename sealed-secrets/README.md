@@ -15,7 +15,7 @@ Once decrypted by the controller,  **the enclosed Secret can be used exactly lik
 ```bash
 # Add sealed secrets bitnami repo to Helm
 helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
-helm update
+helm repo update
 helm install sealed-secrets -n kube-system --set-string fullnameOverride=sealed-secrets-controller sealed-secrets/sealed-secrets
 ```
 
