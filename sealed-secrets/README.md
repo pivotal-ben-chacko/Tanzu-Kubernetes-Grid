@@ -29,7 +29,7 @@ tar -xzvf kubeseal-0.19.2-linux-amd64.tar.gz
 sudo mv kubeseal /usr/local/bin/
 ```
 
-**Usage**
+**Usage:**
 
 The  `kubeseal`  tool reads the JSON/YAML representation of a Secret on stdin, and produces the equivalent (encrypted) SealedSecret on stdout. A Secret can be created in many ways, but one of the easiest is using  `kubectl create secret --dry-run`, as shown in the following example. Note again that the  `kubectl --dry-run`  just creates a local file and doesn't upload anything to the cluster.
 
