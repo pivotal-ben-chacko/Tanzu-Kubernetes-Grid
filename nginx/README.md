@@ -56,6 +56,26 @@ data:
 type: kubernetes.io/tls
 ```
 
+**Specify loadbalancer IP address that NGINX Ingress is assigned**
+
+From time to time it may be necessary to re-install NGINX ingress controller due to maintenance or other unforeseen circumstance. In this situation the IP address assigned by the front end loadbalancer to the ingress controller may change due to the dynamic way the IP addresses are assigned. This may not be ideal as DNS entries may already be assigned with a specific IP address and now all of a sudden the IP address is no longer valid. 
+
+If the load balancer supports it (currently AVI LB does), we can request the IP address that should be assigned to NGINX ingress controller.
+
+**Solution:** 
+
+```bash
+# Save helm chart values to file
+helm get values nginx -n ingress-nginx --all > nginx-values.yaml
+
+# Use yq to update values file, replace IP-ADDRESS with actual ip
+yq -i '.controller.service.loadBalancerIP = "IP-ADDRESS"' values.yaml
+
+# Reinstall nginx ingress controller using updated values file
+helm uninstall nginx -n ingress-nginx
+helm install nginx ingress-nginx/ingress-nginx -n ingress-nginx --values values.yaml
+```
+
 **Enable TCP Ingress for MySQL on port 3306**
 
 ```bash
