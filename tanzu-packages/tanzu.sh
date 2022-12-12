@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source tkg-lib.sh
+source tanzu-lib.sh
 
 # Set to overide automated discovery of harbor version
 TANZU_PACKAGE_VERSION=
