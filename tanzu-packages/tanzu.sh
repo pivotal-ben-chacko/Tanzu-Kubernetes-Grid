@@ -165,6 +165,19 @@ stringData:
 EOF
 }
 
+fluentbit_values_gen () {
+  curl https://raw.githubusercontent.com/vmwarecode/Fluent-Bit-package-configuration-file-for-Tanzu-Kubernetes-Grid-v1.4/master/snippet.txt -s -o fluent-bit-data-values.yaml
+  if [ $? -eq 0 ]; then 
+    echo 
+    echo Success: fluent-bit-data-values.yaml file created. Ensure this file is updated before installing fluent-bit
+    echo
+  fi
+}
+
+fluentbit_install () {
+  tanzu package install $TANZU_FLUENTBIT_PACKAGE_NAME --package-name $TANZU_FLUENTBIT_PACKAGE --version $TANZU_FLUENTBIT_VERSION --values-file $TANZU_FLUENTBIT_VALUES_FILE --namespace $TANZU_NAMESPACE
+}
+
 prometheus_install () {
   tanzu package install $TANZU_PROMETHEUS_PACKAGE_NAME --package-name $TANZU_PROMETHEUS_PACKAGE --version $TANZU_PROMETHEUS_VERSION --namespace $TANZU_NAMESPACE
 }
@@ -247,20 +260,22 @@ begin () {
   echo "  9  - Install package"
   echo
   echo "Fluent-bit: v$TANZU_FLUENTBIT_VERSION ------------------------------"
+  echo "  10 - Generate values file"
+  echo "  11 - Install package"
   echo
   echo "Prometheus: v$TANZU_PROMETHEUS_VERSION ------------------------------"
   echo
-  echo "  10  - Generate values file"
-  echo "  11  - Install package"
+  echo "  12  - Generate values file"
+  echo "  13  - Install package"
   echo
   echo "Kapp Secret: ---------------------------------------------------"
   echo
-  echo "  12 - Generate secret (In Development)"
+  echo "  14 - Generate secret (In Development)"
   echo
   echo "General administration:  --------------------------------"
   echo 
-  echo "  13 - Initialize aliases"
-  echo "  14 - Cleanup Kind cluster"
+  echo "  15 - Initialize aliases"
+  echo "  16 - Cleanup Kind cluster"
   echo
   echo "Select an option:"
   read choice
@@ -285,15 +300,17 @@ begin () {
        ;;
     9) contour_install
        ;;
-    10) echo
+    10) fluentbit_values_gen
        ;;
-    11) prometheus_install
+    11) fluentbit_install
        ;;
-    12) kapp_secrets_gen_update
+    12) prometheus_install
        ;;
-    13) init_alias
+    13) kapp_secrets_gen_update
        ;;
-    14) kind_cleanup
+    14) init_alias
+       ;;
+    15) kind_cleanup
        ;;
     *) echo "This choice is not valid"
   esac
