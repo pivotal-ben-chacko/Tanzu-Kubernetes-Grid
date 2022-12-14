@@ -53,7 +53,7 @@ harbor_values_gen () {
   cp /tmp/harbor-package/config/values.yaml $TANZU_VALUES_FILE
   bash /tmp/harbor-package/config/scripts/generate-passwords.sh $TANZU_VALUES_FILE
   yq -i eval '... comments=""' $TANZU_VALUES_FILE
-   if [ -f "$TANZU_VALUES_FILE" ]; then
+  if [ -f "$TANZU_VALUES_FILE" ]; then
     echo
     echo Success: harbor-data-values.yaml file created. Ensure this file is updated before installing harbor.
     echo

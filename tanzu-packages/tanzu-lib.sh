@@ -44,6 +44,13 @@ certificates:
  duration: 8760h
  renewBefore: 360h
 EOF
+
+if [ $? -eq 0 ]; then
+   echo
+   echo Success: contour-data-values.yaml file created.
+   echo
+fi
+
 }
 
 
