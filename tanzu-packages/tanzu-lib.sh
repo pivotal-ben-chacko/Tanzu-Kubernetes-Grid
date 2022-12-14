@@ -12,6 +12,41 @@ tanzu-repo-16-add () {
   tanzu package repository add tkg-repo -n tanzu-package-repo-global --url projects.registry.vmware.com/tkg/packages/standard/repo:v1.6.0
 }
 
+countour_values_gen () {
+cat > $TANZU_CONTOUR_VALUES_FILE << EOF
+---
+infrastructure_provider: vsphere
+namespace: tanzu-system-ingress
+contour:
+ configFileContents: {}
+ useProxyProtocol: false
+ replicas: 2
+ pspNames: "vmware-system-restricted"
+ logLevel: info
+envoy:
+ service:
+   type: LoadBalancer
+   annotations: {}
+   nodePorts:
+     http: null
+     https: null
+   externalTrafficPolicy: Cluster
+   disableWait: false
+ hostPorts:
+   enable: true
+   http: 80
+   https: 443
+ hostNetwork: false
+ terminationGracePeriodSeconds: 300
+ logLevel: info
+ pspNames: null
+certificates:
+ duration: 8760h
+ renewBefore: 360h
+EOF
+}
+
+
 kapp-controller-psp-apply () {
 cat <<EOF | kubectl apply -f -
 
@@ -51,6 +86,7 @@ spec:
   readOnlyRootFilesystem: false
 EOF
 }
+
 
 kapp-controller-apply () {
 cat <<EOF | kubectl apply -f -

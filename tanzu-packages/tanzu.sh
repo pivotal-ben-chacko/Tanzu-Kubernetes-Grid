@@ -53,6 +53,11 @@ harbor_values_gen () {
   cp /tmp/harbor-package/config/values.yaml $TANZU_VALUES_FILE
   bash /tmp/harbor-package/config/scripts/generate-passwords.sh $TANZU_VALUES_FILE
   yq -i eval '... comments=""' $TANZU_VALUES_FILE
+   if [ -f "$TANZU_VALUES_FILE" ]; then
+    echo
+    echo Success: harbor-data-values.yaml file created. Ensure this file is updated before installing harbor.
+    echo
+  fi
 }
 
 harbor_install () {
@@ -81,40 +86,6 @@ certman_install () {
 
 certman_delete () {
   tanzu package installed delete $TANZU_CERTMAN_PACKAGE_NAME -n $TANZU_NAMESPACE
-}
-
-countour_values_gen () {
-cat > $TANZU_CONTOUR_VALUES_FILE << EOF
----
-infrastructure_provider: vsphere
-namespace: tanzu-system-ingress
-contour:
- configFileContents: {}
- useProxyProtocol: false
- replicas: 2
- pspNames: "vmware-system-restricted"
- logLevel: info
-envoy:
- service:
-   type: LoadBalancer
-   annotations: {}
-   nodePorts:
-     http: null
-     https: null
-   externalTrafficPolicy: Cluster
-   disableWait: false
- hostPorts:
-   enable: true
-   http: 80
-   https: 443
- hostNetwork: false
- terminationGracePeriodSeconds: 300
- logLevel: info
- pspNames: null
-certificates:
- duration: 8760h
- renewBefore: 360h
-EOF
 }
 
 # In Development!
@@ -260,6 +231,7 @@ begin () {
   echo "  9  - Install package"
   echo
   echo "Fluent-bit: v$TANZU_FLUENTBIT_VERSION ------------------------------"
+  echo
   echo "  10 - Generate values file"
   echo "  11 - Install package"
   echo
