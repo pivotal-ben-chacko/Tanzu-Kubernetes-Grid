@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source tkg-lib.sh
+
 # Set to overide automated discovery of harbor version
 TANZU_PACKAGE_VERSION=
 
@@ -204,95 +206,136 @@ kapp_secrets_gen_update () {
   kapp_secret_gen
 }
 
-if [ -z "$TANZU_PACKAGE_VERSION" ]; then
-  TANZU_PACKAGE_VERSION=`tanzu package available list $TANZU_PACKAGE -A | grep $TANZU_PACKAGE | awk '{print $2}' | tail -1`
+begin () {
+  if [ -z "$TANZU_PACKAGE_VERSION" ]; then
+    TANZU_PACKAGE_VERSION=`tanzu package available list $TANZU_PACKAGE | grep $TANZU_PACKAGE | awk '{print $2}' | tail -1`
+  fi
+  
+  if [ -z "$TANZU_CERTMANAGER_VERSION" ]; then
+    TANZU_CERTMANAGER_VERSION=`tanzu package available list | grep cert-manager | awk '{print $5}'`
+  fi
+  
+  if [ -z "$TANZU_CONTOUR_VERSION" ]; then
+    TANZU_CONTOUR_VERSION=`tanzu package available list $TANZU_CONTOUR_PACKAGE | grep $TANZU_CONTOUR_PACKAGE_NAME | awk '{print $2}' | tail -1`
+  fi
+  
+  if [ -z "$TANZU_FLUENTBIT_VERSION" ]; then
+    TANZU_FLUENTBIT_VERSION=`tanzu package available list | grep $TANZU_FLUENTBIT_PACKAGE_NAME | awk '{print $12}'`
+  fi
+  
+  if [ -z "$TANZU_PROMETHEUS_VERSION" ]; then
+    TANZU_PROMETHEUS_VERSION=`tanzu package available list -A | grep $TANZU_PROMETHEUS_PACKAGE_NAME | awk '{print $10}'`
+  fi
+
+  echo
+  echo "Harbor: v$TANZU_PACKAGE_VERSION  -----------------------------"
+  echo
+  echo "  1 - Generate values file"
+  echo "  2 - Install package"
+  echo "  3 - Update package"
+  echo "  4 - Delete package"
+  echo "  5 - List packages"
+  echo
+  echo "Cert Manager: v$TANZU_CERTMANAGER_VERSION -------------------------"
+  echo
+  echo "  6  - Install package"
+  echo "  7  - Delete package"
+  echo
+  echo "Contour: v$TANZU_CONTOUR_VERSION --------------------------------"
+  echo 
+  echo "  8  - Generate values file"
+  echo "  9  - Install package"
+  echo
+  echo "Fluent-bit: v$TANZU_FLUENTBIT_VERSION ------------------------------"
+  echo
+  echo "Prometheus: v$TANZU_PROMETHEUS_VERSION ------------------------------"
+  echo
+  echo "  10  - Generate values file"
+  echo "  11  - Install package"
+  echo
+  echo "Kapp Secret: ---------------------------------------------------"
+  echo
+  echo "  12 - Generate secret (In Development)"
+  echo
+  echo "General administration:  --------------------------------"
+  echo 
+  echo "  13 - Initialize aliases"
+  echo "  14 - Cleanup Kind cluster"
+  echo
+  echo "Select an option:"
+  read choice
+  
+  case $choice in
+    1) check_tools
+       harbor_values_gen
+       ;;
+    2) harbor_install
+       ;;
+    3) harbor_update
+       ;;
+    4) harbor_delete 
+       ;;
+    5) tanzu package installed list -n $TANZU_NAMESPACE -A
+       ;;
+    6) certman_install
+       ;;
+    7) certman_delete
+       ;;
+    8) countour_values_gen
+       ;;
+    9) contour_install
+       ;;
+    10) echo
+       ;;
+    11) prometheus_install
+       ;;
+    12) kapp_secrets_gen_update
+       ;;
+    13) init_alias
+       ;;
+    14) kind_cleanup
+       ;;
+    *) echo "This choice is not valid"
+  esac
+}
+
+init-cluster-yes-no () {
+  echo
+  echo "Cluster may be new, do you want to initialize?"
+  echo
+  echo "  1 - Yes"
+  echo "  2 - No"
+  echo
+  echo "Select an option:"
+  read choice
+
+  case $choice in
+    1) init-cluster
+       ;;
+    2) 
+       ;;
+    *) echo "This choice is not valid"
+  esac
+}
+
+init-cluster () {
+  cluster-rolebinding-apply
+  kapp-controller-psp-apply
+  kapp-controller-apply
+
+  # wait for all pods to be ready before continuing
+  echo Waiting for pods to be ready...
+  sleep 5
+  kubectl wait --for=condition=Ready  pod --all -n tkg-system --timeout=60s
+  sleep 10
+
+  tanzu-repo-16-add
+  tanzu-packages-ns-create
+}
+
+tanzu package available list &> /dev/null 
+if [ "$?" -eq 0 ]; then
+  begin  
+else
+  init-cluster-yes-no
 fi
-
-if [ -z "$TANZU_CERTMANAGER_VERSION" ]; then
-  TANZU_CERTMANAGER_VERSION=`tanzu package available list -A | grep cert-manager | awk '{print $5}'`
-fi
-
-if [ -z "$TANZU_CONTOUR_VERSION" ]; then
-  TANZU_CONTOUR_VERSION=`tanzu package available list $TANZU_CONTOUR_PACKAGE -A | grep $TANZU_CONTOUR_PACKAGE_NAME | awk '{print $2}' | tail -1`
-fi
-
-if [ -z "$TANZU_FLUENTBIT_VERSION" ]; then
-  TANZU_FLUENTBIT_VERSION=`tanzu package available list -A | grep $TANZU_FLUENTBIT_PACKAGE_NAME | awk '{print $12}'`
-fi
-
-if [ -z "$TANZU_PROMETHEUS_VERSION" ]; then
-  TANZU_PROMETHEUS_VERSION=`tanzu package available list -A | grep $TANZU_PROMETHEUS_PACKAGE_NAME | awk '{print $10}'`
-fi
-
-echo
-echo "Harbor: v$TANZU_PACKAGE_VERSION  -----------------------------"
-echo
-echo "  1 - Generate values file"
-echo "  2 - Install package"
-echo "  3 - Update package"
-echo "  4 - Delete package"
-echo "  5 - List packages"
-echo
-echo "Cert Manager: v$TANZU_CERTMANAGER_VERSION -------------------------"
-echo
-echo "  6  - Install package"
-echo "  7  - Delete package"
-echo
-echo "Contour: v$TANZU_CONTOUR_VERSION --------------------------------"
-echo 
-echo "  8  - Generate values file"
-echo "  9  - Install package"
-echo
-echo "Fluent-bit: v$TANZU_FLUENTBIT_VERSION ------------------------------"
-echo
-echo "Prometheus: v$TANZU_PROMETHEUS_VERSION ------------------------------"
-echo
-echo "  10  - Generate values file"
-echo "  11  - Install package"
-echo
-echo "Kapp Secret: ---------------------------------------------------"
-echo
-echo "  12 - Generate secret (In Development)"
-echo
-echo "General administration:  --------------------------------"
-echo 
-echo "  13 - Initialize aliases"
-echo "  14 - Cleanup Kind cluster"
-echo
-echo "Select an option:"
-read choice
-
-case $choice in
-  1) check_tools
-     harbor_values_gen
-     ;;
-  2) harbor_install
-     ;;
-  3) harbor_update
-     ;;
-  4) harbor_delete 
-     ;;
-  5) tanzu package installed list -n $TANZU_NAMESPACE -A
-     ;;
-  6) certman_install
-     ;;
-  7) certman_delete
-     ;;
-  8) countour_values_gen
-     ;;
-  9) contour_install
-     ;;
-  10) echo
-     ;;
-  11) prometheus_install
-     ;;
-  12) kapp_secrets_gen_update
-     ;;
-  13) init_alias
-     ;;
-  14) kind_cleanup
-     ;;
-  *) echo "This choice is not valid"
-esac
-
-

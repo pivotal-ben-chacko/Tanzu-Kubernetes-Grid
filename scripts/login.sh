@@ -14,6 +14,10 @@ alias krr="kubectl rollout restart"
 alias kcg="kubectl config get-contexts"
 alias kcu="kubectl config use-context"
 
+# short alias to set/show context/namespace (only works for bash and bash-compatible shells, current context to be set before using kn to set namespace) 
+alias kx='f() { [ "$1" ] && kubectl config use-context $1 || kubectl config current-context ; } ; f'
+alias kn='f() { [ "$1" ] && kubectl config set-context --current --namespace $1 || kubectl config view --minify | grep namespace | cut -d" " -f6 ; } ; f'
+
 alias kgp="kubectl get pod"
 alias kgs="kubectl get service"
 alias kgd="kubectl get deploy"
@@ -22,9 +26,17 @@ alias kgc="kubectl get configmap"
 alias kgn="kubectl get namespace"
 alias kgnode="kubectl get node"
 
-export KUBECTL_VSPHERE_PASSWORD=`echo $KUBECTL_VSPHERE_PASSWORD_B64 | base64 -d`
-kubectl vsphere login --vsphere-username=$user@vsphere.local --server=vc01cl01-wcp.h2o-2-2086.h2o.vmware.com --insecure-skip-tls-verify --tanzu-kubernetes-cluster-namespace h2o --tanzu-kubernetes-cluster-name workload
+# ---- user defined ----- 
+user=
+server=
+namespace=
+cluster=
+# -----------------------
 
-kubectl vsphere login --vsphere-username=$user@vsphere.local --server=vc01cl01-wcp.h2o-2-2086.h2o.vmware.com --insecure-skip-tls-verify --tanzu-kubernetes-cluster-namespace h2o --tanzu-kubernetes-cluster-name worker
+export KUBECTL_VSPHERE_PASSWORD=`echo $KUBECTL_VSPHERE_PASSWORD_B64 | base64 -d`
+
+kubectl vsphere login --vsphere-username=$user@vsphere.local --server=$server --insecure-skip-tls-verify
+
+kubectl vsphere login --vsphere-username=$user@vsphere.local --server=$server --insecure-skip-tls-verify --tanzu-kubernetes-cluster-namespace $namespace --tanzu-kubernetes-cluster-name $cluster
 
 cleanup
