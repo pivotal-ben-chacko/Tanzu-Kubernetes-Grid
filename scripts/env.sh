@@ -189,12 +189,22 @@ fi
 
 init_alias () {
   echo "Initializing aliases"
-  alias k="kubectl"
-  alias kgc="kubectl config get-contexts"
-  alias kuc="kubectl config use-context"
+  alias k=kubectl
   alias krr="kubectl rollout restart"
-  alias kga="kubectl get all -A"
-  alias tcl="tanzu cluster list --include-management-cluster"
+  alias kcg="kubectl config get-contexts"
+  alias kcu="kubectl config use-context"
+
+  # short alias to set/show context/namespace (only works for bash and bash-compatible shells, current context to be set before using kn to set namespace) 
+  alias kx='f() { [ "$1" ] && kubectl config use-context $1 || kubectl config current-context ; } ; f'
+  alias kn='f() { [ "$1" ] && kubectl config set-context --current --namespace $1 || kubectl config view --minify | grep namespace | cut -d" " -f6 ; } ; f'
+
+  alias kgp="kubectl get pod"
+  alias kgs="kubectl get service"
+  alias kgd="kubectl get deploy"
+  alias kgi="kubectl get ingress"
+  alias kgc="kubectl get configmap"
+  alias kgn="kubectl get namespace"
+  alias kgnode="kubectl get node"
 }
 
 contour_install () {
