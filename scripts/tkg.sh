@@ -5,7 +5,7 @@ source tkg-lib.sh
 # Set to overide automated discovery of harbor version
 TANZU_PACKAGE_VERSION=
 
-TANZU_PACKAGE_NAME=harbor
+TANZU_HARBOR_PACKAGE_NAME=harbor
 TANZU_PACKAGE=harbor.tanzu.vmware.com
 TANZU_NAMESPACE=tanzu-packages
 TANZU_VALUES_FILE=harbor-data-values.yaml
@@ -57,7 +57,7 @@ harbor_values_gen () {
 
 harbor_install () {
   if [ -f "$TANZU_VALUES_FILE" ]; then
-    tanzu package install $TANZU_PACKAGE_NAME --package-name $TANZU_PACKAGE --version $TANZU_PACKAGE_VERSION --values-file $TANZU_VALUES_FILE --namespace $TANZU_NAMESPACE
+    tanzu package install $TANZU_HARBOR_PACKAGE_NAME --package-name $TANZU_PACKAGE --version $TANZU_PACKAGE_VERSION --values-file $TANZU_VALUES_FILE --namespace $TANZU_NAMESPACE
   else
     echo "Please generate a harbor values file first!"
   fi
@@ -65,14 +65,14 @@ harbor_install () {
 
 harbor_update () {
   if [ -f "$TANZU_VALUES_FILE" ]; then
-    tanzu package installed update $TANZU_PACKAGE_NAME --package-name $TANZU_PACKAGE --version $TANZU_PACKAGE_VERSION --values-file $TANZU_VALUES_FILE --namespace $TANZU_NAMESPACE
+    tanzu package installed update $TANZU_HARBOR_PACKAGE_NAME --package-name $TANZU_PACKAGE --version $TANZU_PACKAGE_VERSION --values-file $TANZU_VALUES_FILE --namespace $TANZU_NAMESPACE
   else
     echo "No harbor values file found!"
   fi
 }
 
 harbor_delete () {
-  tanzu package installed delete $TANZU_PACKAGE_NAME -n $TANZU_NAMESPACE
+  tanzu package installed delete $TANZU_HARBOR_PACKAGE_NAME -n $TANZU_NAMESPACE
 }
 
 certman_install () {
