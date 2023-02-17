@@ -37,6 +37,8 @@ export KUBECTL_VSPHERE_PASSWORD=`echo $KUBECTL_VSPHERE_PASSWORD_B64 | base64 -d`
 
 kubectl vsphere login --vsphere-username=$user@vsphere.local --server=$server --insecure-skip-tls-verify
 
-kubectl vsphere login --vsphere-username=$user@vsphere.local --server=$server --insecure-skip-tls-verify --tanzu-kubernetes-cluster-namespace $namespace --tanzu-kubernetes-cluster-name $cluster
+if [ -n "$namespace" ]; then
+  kubectl vsphere login --vsphere-username=$user@vsphere.local --server=$server --insecure-skip-tls-verify --tanzu-kubernetes-cluster-namespace $namespace --tanzu-kubernetes-cluster-name $cluster
+fi
 
 cleanup
