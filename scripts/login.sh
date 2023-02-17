@@ -18,13 +18,15 @@ alias kcu="kubectl config use-context"
 alias kx='f() { [ "$1" ] && kubectl config use-context $1 || kubectl config current-context ; } ; f'
 alias kn='f() { [ "$1" ] && kubectl config set-context --current --namespace $1 || kubectl config view --minify | grep namespace | cut -d" " -f6 ; } ; f'
 
-alias kgp="kubectl get pod"
-alias kgs="kubectl get service"
-alias kgd="kubectl get deploy"
-alias kgi="kubectl get ingress"
-alias kgc="kubectl get configmap"
-alias kgn="kubectl get namespace"
-alias kgnode="kubectl get node"
+alias kp="kubectl get pod"
+alias ks="kubectl get service"
+alias kd="kubectl get deploy"
+alias ki="kubectl get ingress"
+alias kc="kubectl get configmap"
+alias kn="kubectl get namespace"
+alias knode="kubectl get node"
+alias ktkr="kubectl get tkr"
+alias ktkc="kubectl get tkc -A"
 
 # ---- user defined ----- 
 user=
