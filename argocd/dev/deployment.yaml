@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mop
+  name: spring
 spec:
   selector:
     matchLabels:
-      app: mop
-  replicas: 1
+      app: spring
+  replicas: 2
   template:
     metadata:
       labels:
-        app: mop
+        app: spring
     spec:
       containers:
-      - name: mop
+      - name: spring
         image: beninaskaria/vmware:spring-demo
