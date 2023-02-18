@@ -14,4 +14,4 @@ spec:
     spec:
       containers:
       - name: mop
-        image: beninaskaria/vmware:mop-alpine
+        image: beninaskaria/vmware:spring-demo
