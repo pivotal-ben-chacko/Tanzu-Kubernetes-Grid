@@ -1,4 +1,4 @@
-![rabbitmq logo](rabbitmq.jpeg)
+![vault logo](vault.png)
 
 ## HashiCorp Vault
 
