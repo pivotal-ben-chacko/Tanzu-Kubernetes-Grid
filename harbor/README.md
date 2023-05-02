@@ -84,6 +84,9 @@ This is a simple `Issuer` that will sign certificates based on a private key. Th
       - "harbor.skynetsystems.io"
       issuerRef:
         name: harbor-ca-issuer
+        # We can reference ClusterIssuers by changing the kind here.
+        # The default value is Issuer (i.e. a locally namespaced Issuer)
+        kind: Issuer
     ```
     Ensure that the secret has been created and that you see 3 as the number of data items in the secret:
     
