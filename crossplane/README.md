@@ -1,5 +1,4 @@
 ![crossplane](crossplane.png)
-![crossplane](crossplane.png)
 
 ## Control Planes of the Future
 
