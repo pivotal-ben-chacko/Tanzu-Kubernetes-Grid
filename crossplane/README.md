@@ -47,3 +47,70 @@ az login # follow the prompts
 ```
 
 **Step 3**: Create an Azure service principal
+
+Using the Azure command-line and provide your Subscription ID create a service principal and authentication file.
+
+```
+az ad sp create-for-rbac \
+--sdk-auth \
+--role Owner \
+--scopes /subscriptions/<Subscription ID> 
+```
+
+Save your Azure JSON output as `azure-credentials.json`.
+
+**Step 4**: Create a Kubernetes secret with the Azure credentials
+
+A Kubernetes generic secret has a name and contents. Use  `kubectl create secret`  to generate the secret object named  `azure-secret`  in the  `crossplane-system`  namespace.
+
+Use the  `--from-file=`  argument to set the value to the contents of the  `azure-credentials.json`  file.
+
+```
+kubectl create secret \
+generic azure-secret \
+-n crossplane-system \
+--from-file=creds=./azure-credentials.json
+```
+
+**Step 5**: Create a ProviderConfig
+
+A  `ProviderConfig`  customizes the settings of the Azure Provider.
+
+Apply the  `ProviderConfig`  with the command:
+
+```
+cat <<EOF | kubectl apply -f -
+apiVersion: azure.upbound.io/v1beta1
+metadata:
+  name: default
+kind: ProviderConfig
+spec:
+  credentials:
+    source: Secret
+    secretRef:
+      namespace: crossplane-system
+      name: azure-secret
+      key: creds
+EOF
+```
+
+**Step 6**: Create a managed resource
+
+A _managed resource_ is anything Crossplane creates and manages outside of the Kubernetes cluster. This creates an Azure Resource group with Crossplane. The Resource group is a _managed resource_.
+
+```
+cat <<EOF | kubectl apply -f -
+apiVersion: azure.upbound.io/v1beta1
+kind: ResourceGroup
+metadata:
+  name: example-rg
+spec:
+  forProvider:
+    location: "East US"
+  providerConfigRef:
+    name: default
+EOF
+```
+
+-   Explore Azure resources that can Crossplane can configure in the  [Provider CRD reference](https://marketplace.upbound.io/providers/upbound/provider-azure/latest/crds).
+
