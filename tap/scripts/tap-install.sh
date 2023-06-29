@@ -78,6 +78,9 @@ subjects:
     name: default
 EOF
 
+# Use to find all available TAP releases
+# imgpkg tag list -i registry.tanzu.vmware.com/tanzu-application-platform/tap-packages | grep -v sha256 | cut -c 1-5 | sort -ru
+
 # tanzu package install external-secrets --package-name external-secrets.apps.tanzu.vmware.com --version 0.6.1+tap.4 --namespace tap-install
 # tanzu package repository get tanzu-tap-repository --namespace tap-install
 # tanzu plugin install --local cli all

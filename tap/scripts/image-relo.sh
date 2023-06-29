@@ -2,7 +2,7 @@
 
 export IMGPKG_REGISTRY_HOSTNAME=harbor.skynetsystems.io
 export IMGPKG_REGISTRY_USERNAME=admin
-export IMGPKG_REGISTRY_PASSWORD=
+export IMGPKG_REGISTRY_PASSWORD=changeme
 export TAP_VERSION=1.5.1
 
 # imgpkg copy -b registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
