@@ -1,0 +1,21 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: vault-api-proxy
+  namespace: vault
+spec:
+  virtualhost:
+    fqdn: vault.skynetsystems.io
+    tls:
+      secretName: vault-tls-secret
+  routes:
+  - services:
+    - name: vault-active
+      port: 8200
+      protocol: tls
+      validation:
+        caSecret: vault-tls-secret
+        subjectName: vault.skynetsystems.io
+    timeoutPolicy:
+      idle: 45s
+      response: 45s

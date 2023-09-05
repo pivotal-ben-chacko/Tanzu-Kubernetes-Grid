@@ -84,3 +84,4 @@ EOF
 # tanzu package install external-secrets --package-name external-secrets.apps.tanzu.vmware.com --version 0.6.1+tap.4 --namespace tap-install
 # tanzu package repository get tanzu-tap-repository --namespace tap-install
 # tanzu plugin install --local cli all
+# kubectl -n tanzu-system-registry get secret harbor-tls -o=jsonpath="{.data.ca\.crt}" | base64 -d

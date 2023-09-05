@@ -1,0 +1,44 @@
+global:
+   enabled: true
+   tlsDisable: false
+injector:
+   enabled: true
+server:
+   extraEnvironmentVars:
+      VAULT_CACERT: /vault/userconfig/vault-tls-secret/ca.crt
+      VAULT_TLSCERT: /vault/userconfig/vault-tls-secret/tls.crt
+      VAULT_TLSKEY: /vault/userconfig/vault-tls-secret/tls.key
+   volumes:
+      - name: userconfig-vault-tls-secret
+        secret:
+         defaultMode: 420
+         secretName: vault-tls-secret
+   volumeMounts:
+      - mountPath: /vault/userconfig/vault-tls-secret
+        name: userconfig-vault-tls-secret
+        readOnly: true
+   standalone:
+      enabled: false
+   affinity: ""
+   ha:
+      enabled: true
+      replicas: 3
+      raft:
+         enabled: true
+         setNodeId: true
+         config: |
+            ui = true
+            listener "tcp" {
+               tls_disable = 0
+               address = "[::]:8200"
+               cluster_address = "[::]:8201"
+               tls_cert_file = "/vault/userconfig/vault-tls-secret/tls.crt"
+               tls_key_file  = "/vault/userconfig/vault-tls-secret/tls.key"
+               tls_client_ca_file = "/vault/userconfig/vault-tls-secret/ca.crt"
+            }
+            storage "raft" {
+               path = "/vault/data"
+            }
+            disable_mlock = true
+            service_registration "kubernetes" {}
+
