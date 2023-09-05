@@ -129,79 +129,49 @@ vault-tls   True    vault-tls-secret   109m
 Create the following values.yaml file
 
 ```
----
 global:
-  enabled: true
-  tlsDisable: false
+   enabled: true
+   tlsDisable: false
+injector:
+   enabled: true
 server:
-  ingress:
-    enabled: false # Do not create ingress, we will creat a proxy
-  readinessProbe:
-    httpGet:
+   extraEnvironmentVars:
+      VAULT_CACERT: /vault/userconfig/vault-tls-secret/ca.crt
+      VAULT_TLSCERT: /vault/userconfig/vault-tls-secret/tls.crt
+      VAULT_TLSKEY: /vault/userconfig/vault-tls-secret/tls.key
+   volumes:
+      - name: userconfig-vault-tls-secret
+        secret:
+         defaultMode: 420
+         secretName: vault-tls-secret
+   volumeMounts:
+      - mountPath: /vault/userconfig/vault-tls-secret
+        name: userconfig-vault-tls-secret
+        readOnly: true
+   standalone:
+      enabled: false
+   affinity: ""
+   ha:
       enabled: true
-      port: 8200
-      scheme: HTTPS
-      path: "/v1/sys/health?standbycode=204&sealedcode=204&uninitcode=204"
-  livenessProbe:
-    httpGet:
-      enabled: true
-      port: 8200
-      scheme: HTTPS
-      path: "/v1/sys/health?standbyok=true"
-      initialDelaySeconds: 60
-  auditStorage:
-    enabled: true
-  standalone:
-    enabled: false
-  extraEnvironmentVars:
-    VAULT_CACERT: /vault/userconfig/vault-tls-secret/ca.crt
-  extraVolumes:
-    - type: secret
-      name: vault-tls-secret # The TLS Secret Created Earlier
-  ha:
-    enabled: true
-    replicas: 3
-    address: "0.0.0.0:8200"
-    cluster_address: "0.0.0.0:8201"
-    raft:
-      enabled: true
-      config: |
-        ui = true
-        listener "tcp" {
-          tls_disable = 0
-          address = "0.0.0.0:8200"
-          cluster_address = "0.0.0.0:8201"
-          tls_cert_file = "/vault/userconfig/vault-tls-secret/tls.crt"
-          tls_key_file = "/vault/userconfig/vault-tls-secret/tls.key"
-          tls_client_ca_file = "/vault/userconfig/vault-tls-secret/ca.crt"
-        }
-        storage "raft" {
-          path = "/vault/data"
-            retry_join {
-            leader_api_addr = "https://vault-0.vault-internal:8200"
-            leader_ca_cert_file = "/vault/userconfig/vault-tls-secret/ca.crt"
-            leader_client_cert_file = "/vault/userconfig/vault-tls-secret/tls.crt"
-            leader_client_key_file = "/vault/userconfig/vault-tls-secret/tls.key"
-          }
-          retry_join {
-            leader_api_addr = "https://vault-1.vault-internal:8200"
-            leader_ca_cert_file = "/vault/userconfig/vault-tls-secret/ca.crt"
-            leader_client_cert_file = "/vault/userconfig/vault-tls-secret/tls.crt"
-            leader_client_key_file = "/vault/userconfig/vault-tls-secret/tls.key"
-          }
-          retry_join {
-            leader_api_addr = "https://vault-2.vault-internal:8200"
-            leader_ca_cert_file = "/vault/userconfig/vault-tls-secret/ca.crt"
-            leader_client_cert_file = "/vault/userconfig/vault-tls-secret/tls.crt"
-            leader_client_key_file = "/vault/userconfig/vault-tls-secret/tls.key"
-          }
-        }
-        service_registration "kubernetes" {}
-ui:
-  enabled: true
-  serviceType: ClusterIP
-  serviceNodePort: null
-  externalPort: 8904
+      replicas: 3
+      raft:
+         enabled: true
+         setNodeId: true
+         config: |
+            ui = true
+            listener "tcp" {
+               tls_disable = 0
+               address = "[::]:8200"
+               cluster_address = "[::]:8201"
+               tls_cert_file = "/vault/userconfig/vault-tls-secret/tls.crt"
+               tls_key_file  = "/vault/userconfig/vault-tls-secret/tls.key"
+               tls_client_ca_file = "/vault/userconfig/vault-tls-secret/ca.crt"
+            }
+            storage "raft" {
+               path = "/vault/data"
+            }
+            disable_mlock = true
+            service_registration "kubernetes" {}
 ```
 
 **Install Vault**
