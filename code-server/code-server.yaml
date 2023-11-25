@@ -1,0 +1,101 @@
+# Code Server 2023 
+#
+# Run Certbot to generate valid TLS cert from Letsencrypt
+# $ > sudo certbot certonly --standalone
+# Run the following command to retain PV even if PVC is deleted:
+# $ > kubectl patch pv <PV-NAME> -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
+# Run the following command to release the claim from the PV if the PVC has been deleted:
+# $ > kubectl patch pv <PV-NAME> --type json -p '[{"op": "remove", "path": "/spec/claimRef"}]'
+#
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: code-server-pvc
+spec:
+  storageClassName: default
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500M
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: code-server-ssl
+type: kubernetes.io/tls
+data:
+  tls.crt: <TLS-CERT> 
+  tls.key: <TLS-KEY>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: code-server
+  name: code-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: code-server
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: code-server
+    spec:
+      containers:
+      - image: beninaskaria/vmware:code-server2
+        name: code-server
+        env:
+        - name: PASSWORD
+          value: <CODE-SERVER-PASSWORD>
+        command: ["/bin/sh"]
+        args: ["-c", "code-server --bind-addr 0.0.0.0:8080 --user-data-dir /mnt/store/code-server --cert /etc/code-server/tls/tls.crt --cert-key /etc/code-server/tls/tls.key"]
+        volumeMounts:
+          - mountPath: "/etc/code-server/tls"
+            name: code-server-ssl
+            readOnly: true
+          - mountPath: "/mnt/store"
+            name: code-server-store
+        ports:
+        - containerPort: 8080
+      volumes:
+      - name: code-server-ssl
+        secret:
+          secretName: code-server-ssl
+      - name: code-server-store
+        persistentVolumeClaim:
+          claimName: code-server-pvc
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: code-server-service
+spec:
+  selector:
+    app: code-server
+  ports:
+    - name: https
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: code-server-proxy
+spec:
+  virtualhost:
+    fqdn: code.skynetsystems.io
+    tls:
+      passthrough: true
+  tcpproxy:
+    services:
+    - name: code-server-service
+      port: 8080
