@@ -1,0 +1,58 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: tap-java-test-pipeline
+  namespace: dev
+  labels:
+    apps.tanzu.vmware.com/pipeline: test      # (!) required
+    apps.tanzu.vmware.com/language: java
+spec:
+  params:
+    - name: sub-path
+    - name: source-url                        # (!) required
+    - name: source-revision                   # (!) required
+  tasks:
+    - name: test
+      params:
+        - name: sub-path
+          value: $(params.sub-path)
+        - name: source-url
+          value: $(params.source-url)
+        - name: source-revision
+          value: $(params.source-revision)
+      taskSpec:
+        params:
+          - name: sub-path
+          - name: source-url
+          - name: source-revision
+        steps:
+          - name: test
+            image: gradle
+            env:
+            - name: HARBOR_CERT
+              valueFrom:
+                secretKeyRef:
+                  name: harbor-ca
+                  key: cert
+            script: |
+              cd `mktemp -d`
+              wget -qO- $(params.source-url) | tar xvz -m
+              cd tanzu-java-web-app
+              gradle test 
+  finally:
+  - name: finaltask
+    params:
+    - name: sub-path
+      value: $(params.sub-path)
+    when:
+    - input: $(tasks.test.status)
+      operator: in
+      values: ["Failed"]
+    taskSpec:
+      params:
+      - name: sub-path
+      steps:
+      - name: echo
+        image: ubuntu
+        script: |-
+          echo "App $(params.sub-path) has failed!"
