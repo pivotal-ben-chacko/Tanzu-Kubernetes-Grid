@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ootb-supply-chain-overlay
+  namespace: tap-install
+type: Opaque
+stringData:
+  ootb-supply-chain-overlay.yaml: |
+    #@ load("@ytt:overlay", "overlay")
+    #@ load("@ytt:template", "template")
+    
+    #@overlay/match by=overlay.subset({"apiVersion": "carto.run/v1alpha1", "kind": "ClusterSupplyChain","metadata":{"name":"source-test-scan-to-url"}}), expects="0+"    
+    ---
+    spec:
+      resources:
+      #@overlay/match by="name", expects="0+"
+      #@overlay/remove
+      - name: deliverable
+      
+      #@overlay/match by="name", expects="0+"
+      - name: config-writer
+        #@overlay/replace
+        templateRef:
+          kind: ClusterTemplate
+          name: git-config-writer-template

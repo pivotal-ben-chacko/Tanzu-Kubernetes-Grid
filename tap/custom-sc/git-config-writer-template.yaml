@@ -1,0 +1,51 @@
+apiVersion: carto.run/v1alpha1
+kind: ClusterTemplate
+metadata:
+  name: git-config-writer-template
+spec:
+  healthRule:
+    singleConditionType: Ready
+  lifecycle: mutable
+  ytt: |
+    #@ load("@ytt:data", "data")
+    #@ load("@ytt:json", "json")
+    #@ load("@ytt:base64", "base64")
+
+    #@ def merge_labels(fixed_values):
+    #@   labels = {}
+    #@   if hasattr(data.values.workload.metadata, "labels"):
+    #@     labels.update(data.values.workload.metadata.labels)
+    #@   end
+    #@   labels.update(fixed_values)
+    #@   return labels
+    #@ end
+
+    ---
+    apiVersion: carto.run/v1alpha1
+    kind: Runnable
+    metadata:
+      name: #@ data.values.workload.metadata.name + "-git-config-writer"
+      labels: #@ merge_labels({ "app.kubernetes.io/component": "git-config-writer" })
+    spec:
+      #@ if/end hasattr(data.values.workload.spec, "serviceAccountName"):
+      serviceAccountName: #@ data.values.workload.spec.serviceAccountName
+
+      runTemplateRef:
+        name: commit-config-pipelinerun
+
+      inputs:
+        serviceAccount: #@ data.values.params.serviceAccount
+        ca_cert_data: #@ data.values.params.ca_cert_data
+        git_server_kind: #@ data.values.params.gitops_server_kind
+        git_server_address: #@ data.values.params.gitops_server_address
+        commit_branch: #@ data.values.params.gitops_commit_branch
+        pull_request_title: #@ data.values.params.gitops_pull_request_title
+        pull_request_body: #@ data.values.params.gitops_pull_request_body
+        repository_owner: #@ data.values.params.gitops_repository_owner
+        repository_name: #@ data.values.params.gitops_repository_name
+        base_branch: #@ data.values.params.gitops_branch
+        git_user_name: #@ data.values.params.gitops_user_name
+        git_user_email: #@ data.values.params.gitops_user_email
+        git_commit_message: #@ data.values.params.gitops_commit_message
+        git_files: #@ base64.encode(json.encode(data.values.config))
+        sub_path: #@ "config/" + data.values.workload.metadata.namespace + "/" + data.values.workload.metadata.name
