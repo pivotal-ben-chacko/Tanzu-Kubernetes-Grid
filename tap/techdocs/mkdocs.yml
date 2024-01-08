@@ -1,0 +1,6 @@
+site_name: TAP Onboarding
+site_description: Start your TAP journey here
+plugins:
+  - techdocs-core
+nav:
+  - Getting Started: index.md
