@@ -1,3 +1,3 @@
 ## Working with Java workloads
 
-[click-me](test.html)
+[click-me](test.md)
