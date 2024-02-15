@@ -1,0 +1,72 @@
+# ------- Important --------
+# Update the secret defined in this file with your TLS key and cert.
+# You should also update the fqdn values found in this file.
+# --------------------------
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-service
+  namespace: minio-dev
+spec:
+  selector:
+    app: minio
+  ports:
+    - name: https
+      protocol: TCP
+      port: 9090
+      targetPort: 9090
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-api-service
+  namespace: minio-dev
+spec:
+  selector:
+    app: minio
+  ports:
+    - name: https
+      protocol: TCP
+      port: 9000
+      targetPort: 9000
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: minio-server-ssl
+  namespace: minio-dev
+type: kubernetes.io/tls
+data:
+  tls.crt: <YOUR TLS CERT> 
+  tls.key: <YOUR TLS KEY>
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: minio-proxy
+  namespace: minio-dev
+spec:
+  virtualhost:
+    fqdn: minio.skynetsystems.io
+    tls:
+      secretName: minio-server-ssl
+  tcpproxy:
+    services:
+    - name: minio-service
+      port: 9090
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: minio-api-proxy
+  namespace: minio-dev
+spec:
+  virtualhost:
+    fqdn: minio-api.skynetsystems.io
+    tls:
+      secretName: minio-server-ssl
+  tcpproxy:
+    services:
+    - name: minio-api-service
+      port: 9000
