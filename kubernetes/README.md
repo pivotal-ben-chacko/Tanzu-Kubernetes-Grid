@@ -790,3 +790,105 @@ Once all pods are up and running take one of the nodes out of service using the 
 ```sh
 kubectl drain <node-x> --ignore-daemonsets
 ```
+
+## Assign resource limits to namespaces
+
+By default, containers run with unbounded compute resources on a Kubernetes cluster. With resource quotas, cluster administrators can restrict resource consumption and creation on a namespace basis. Within a namespace, a Pod or Container can consume as much CPU and memory as defined by the namespace's resource quota. There is a concern that one Pod or Container could monopolize all available resources. A LimitRange is a policy to constrain resource allocations (to Pods or Containers) in a namespace.
+
+A  _LimitRange_  provides constraints that can:
+
+-   Enforce minimum and maximum compute resources usage per Pod or Container in a namespace.
+-   Enforce minimum and maximum storage request per PersistentVolumeClaim in a namespace.
+-   Enforce a ratio between request and limit for a resource in a namespace.
+-   Set default request/limit for compute resources in a namespace and automatically inject them to Containers at runtime.
+
+
+In this next example we will compile and run the following Java app to simulate a miss-behaving application that is utilizing all the CPU resources of the node that the app/pod is scheduled on. 
+
+```
+class HighCPU {
+
+  public static final int NUM_TESTS = 1000;
+
+  public static void main(String[] args) {
+
+    int count = 0;
+
+    while(count < 50) {
+      new Thread() {
+        public void run() {
+          long start = System.nanoTime();
+          for (int i = 0; i < NUM_TESTS; i++) {
+            spin(500);
+          }
+          System.out.println("Thread took " + (System.nanoTime()-start)/1000000 +
+          "ms (expected " + (NUM_TESTS*500) + ")");
+        }
+      }.start();
+
+      count++;
+    }
+
+  }
+
+  private static void spin(int milliseconds) {
+    long sleepTime = milliseconds*1000000L; // convert to nanoseconds
+    long startTime = System.nanoTime();
+    while ((System.nanoTime() - startTime) < sleepTime) {}
+  }
+}
+```
+
+To compile and run the app, we can create and run a pod that uses an openjdk image. This image includes the java runtime and the JDK built into an Oracle Linux base image. 
+
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: openjdk
+  namespace: openjdk
+spec:
+  containers:
+  - name: openjdk
+    image: openjdk:23-jdk-oracle
+    command: ["/bin/bash", "-c", "--"]
+    args: ["tail -f /dev/null"]
+```
+
+Ensure that the pod is up and running:
+```
+$ > kubectl get pods -n openjdk
+NAME      READY   STATUS    RESTARTS   AGE
+openjdk   1/1     Running   0          62m
+```
+
+Now exec into the container using the following command:
+
+```
+$ > k exec -it openjdk -n openjdk -- bash
+bash-5.1#
+```
+
+Before we can compile and launch the Java app, we will need to install Vim, as this editor is not packaged with the Oracle Linux base image. We can install Vim using the following command: 
+
+```
+$ > microdnf install -y vim
+```
+
+Now we are ready to compile and launch the Java app. First create a new file called *HighCPU.java*  and add insert the Java code given above. Save the file once done.
+
+Next compile the Java code into a .class file by running the following command:
+
+```
+$ > javac HighCPU.java
+```
+You should now have a new file created called *HighCPU.class* in the current directory. 
+
+Finally we can run the program using the following command: 
+
+```
+$ > java HighCPU
+```
+
+This should cause the CPU utilization on the node that the Java app is running on to spike tremendously. Without any limits set there are bounds to how much compute resources a pod can utilize. Running *htop* on the node the pod is scheduled shows the following output:
+
