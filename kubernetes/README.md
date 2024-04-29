@@ -927,4 +927,4 @@ Now re-run the java app on the pod and compare the CPU utilization to the previo
 
 ***Note:** you must delete the old pod and create a new one for the changes to take effect!*
 
-![enter image description here](HighCPU-Bound.gif)
+![enter image description here](HighCPU-bound.gif)
