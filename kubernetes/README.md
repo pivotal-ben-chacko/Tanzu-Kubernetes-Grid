@@ -895,4 +895,36 @@ This should cause the CPU utilization on the node that the Java app is running o
 
 ![High CPU on unbound node](HighCPU-Unbound.gif)
 
+As you can see above, an unbound namespace, can effectively overburden the node and make it unresponsive. 
 
+In order to prevent this from happening, assign a LimitRange to the namespace pods are running in as in the following example:
+
+```sh
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-min-max
+  namespace: openjdk
+spec:
+  limits:
+  - max:
+      cpu: "2"
+      memory: "1Gi"
+    min:
+      cpu: "200m"
+      memory: "500Mi"
+    type: Container
+```
+
+Save the above example to a file and apply this limit range to the namespace that the pod is running in:
+
+```sh
+$ > k apply -f limit-range.yaml
+limitrange/cpu-min-max created
+```
+
+Now re-run the java app on the pod and compare the CPU utilization to the previous run without resource limitations.
+
+***Note:** you must delete the old pod and create a new one for the changes to take effect!*
+
+![enter image description here](HighCPU-Bound.gif)
