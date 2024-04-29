@@ -840,7 +840,7 @@ class HighCPU {
 }
 ```
 
-To compile and run the app, we can create and run a pod that uses an openjdk image. This image includes the java runtime and the JDK built into an Oracle Linux base image. 
+To compile and run the app, we'll use an image provided by the OpenJDK foundation. This image includes the java runtime and the JDK built into an Oracle Linux base image. 
 
 ```sh
 apiVersion: v1
@@ -923,7 +923,7 @@ $ > k apply -f limit-range.yaml
 limitrange/cpu-min-max created
 ```
 
-Now re-run the java app on the pod and compare the CPU utilization to the previous run without resource limitations.
+Now re-run the java app on the pod and compare the CPU utilization to the previous run without any resource limitations.
 
 ***Note:** you must delete the old pod and create a new one for the changes to take effect!*
 
