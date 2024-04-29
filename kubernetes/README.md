@@ -890,5 +890,8 @@ Finally we can run the program using the following command:
 $ > java HighCPU
 ```
 
-This should cause the CPU utilization on the node that the Java app is running on to spike tremendously. Without any limits set there are bounds to how much compute resources a pod can utilize. Running *htop* on the node the pod is scheduled shows the following output:
+This should cause the CPU utilization on the node that the Java app is running on to spike tremendously. Without any limits set there are no bounds to how much compute resources a pod can utilize. Running *htop* on the node the pod is scheduled shows the following output:
+
+![enter image description here](HighCPU-Unbound.gif)
+
 
