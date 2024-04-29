@@ -16,6 +16,7 @@
 
 - [Pod Topology Spread Constraints](https://github.com/pivotal-ben-chacko/Tanzu-Kubernetes-Grid/tree/main/kubernetes#pod-topology-spread-constraints)
 
+- [Assign Resource Limits to Namespaces](https://github.com/pivotal-ben-chacko/Tanzu-Kubernetes-Grid/tree/main/kubernetes#Assign-resource-limits-to-namespaces)
 
 ## Kubernetes Best Practices
 
@@ -805,7 +806,7 @@ A  _LimitRange_  provides constraints that can:
 
 In this next example we will compile and run the following Java app to simulate a miss-behaving application that is utilizing all the CPU resources of the node that the app/pod is scheduled on. 
 
-```
+```sh
 class HighCPU {
 
   public static final int NUM_TESTS = 1000;
@@ -841,7 +842,7 @@ class HighCPU {
 
 To compile and run the app, we can create and run a pod that uses an openjdk image. This image includes the java runtime and the JDK built into an Oracle Linux base image. 
 
-```
+```sh
 apiVersion: v1
 kind: Pod
 metadata:
@@ -856,7 +857,7 @@ spec:
 ```
 
 Ensure that the pod is up and running:
-```
+```sh
 $ > kubectl get pods -n openjdk
 NAME      READY   STATUS    RESTARTS   AGE
 openjdk   1/1     Running   0          62m
@@ -864,14 +865,14 @@ openjdk   1/1     Running   0          62m
 
 Now exec into the container using the following command:
 
-```
+```sh
 $ > k exec -it openjdk -n openjdk -- bash
 bash-5.1#
 ```
 
 Before we can compile and launch the Java app, we will need to install Vim, as this editor is not packaged with the Oracle Linux base image. We can install Vim using the following command: 
 
-```
+```sh
 $ > microdnf install -y vim
 ```
 
@@ -879,19 +880,19 @@ Now we are ready to compile and launch the Java app. First create a new file cal
 
 Next compile the Java code into a .class file by running the following command:
 
-```
+```sh
 $ > javac HighCPU.java
 ```
 You should now have a new file created called *HighCPU.class* in the current directory. 
 
 Finally we can run the program using the following command: 
 
-```
+```sh
 $ > java HighCPU
 ```
 
 This should cause the CPU utilization on the node that the Java app is running on to spike tremendously. Without any limits set there are no bounds to how much compute resources a pod can utilize. Running *htop* on the node the pod is scheduled shows the following output:
 
-![enter image description here](HighCPU-Unbound.gif)
+![High CPU on unbound node](HighCPU-Unbound.gif)
 
 
