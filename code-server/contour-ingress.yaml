@@ -1,0 +1,14 @@
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: code-server-proxy
+spec:
+  virtualhost:
+    fqdn: code.skynetsystems.io
+    tls:
+      passthrough: true
+  tcpproxy:
+    services:
+    - name: code-server-service
+      port: 8080
