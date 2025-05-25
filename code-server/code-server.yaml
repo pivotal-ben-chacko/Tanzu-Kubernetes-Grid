@@ -14,7 +14,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: code-server-pvc
 spec:
-  storageClassName: default
+  storageClassName: <UPDATE-STORAGE-CLASS-NAME>
   accessModes:
     - ReadWriteOnce
   resources:
@@ -27,8 +27,8 @@ metadata:
   name: code-server-ssl
 type: kubernetes.io/tls
 data:
-  tls.crt: <TLS-CERT> 
-  tls.key: <TLS-KEY>
+  tls.crt: <TLS-CERT-BASE64> 
+  tls.key: <TLS-KEY-BASE64>
 ---
 apiVersion: apps/v1
 kind: Deployment
